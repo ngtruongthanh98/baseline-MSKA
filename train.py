@@ -297,6 +297,9 @@ def evaluate(args, config, dev_dataloader, model, tokenizer, epoch, beam_size=1,
                 generate_output = model.generate_txt(
                     transformer_inputs=output['transformer_inputs'],
                     generate_cfg=generate_cfg)
+
+                print('generate_output: ', generate_output)
+
                 for name, txt_hyp, txt_ref in zip(src_input['name'], generate_output['decoded_sequences'],
                                                   src_input['text']):
                     results[name]['txt_hyp'], results[name]['txt_ref'] = txt_hyp, txt_ref
