@@ -298,11 +298,14 @@ def evaluate(args, config, dev_dataloader, model, tokenizer, epoch, beam_size=1,
                     transformer_inputs=output['transformer_inputs'],
                     generate_cfg=generate_cfg)
 
-                print('generate_output: ', generate_output)
+                # print('generate_output: ', generate_output)
 
                 for name, txt_hyp, txt_ref in zip(src_input['name'], generate_output['decoded_sequences'],
                                                   src_input['text']):
                     results[name]['txt_hyp'], results[name]['txt_ref'] = txt_hyp, txt_ref
+
+                    print('txt_hyp: ', txt_hyp)
+                    print('txt_ref: ', txt_ref)
             metric_logger.update(loss=output['total_loss'].item())
         if do_recognition:
             evaluation_results = {}
