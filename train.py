@@ -27,6 +27,9 @@ import torch.distributed as dist
 from optimizer import build_optimizer, build_scheduler
 from phoenix_cleanup import clean_phoenix_2014_trans, clean_phoenix_2014
 
+# gTTS
+from gtts import gTTS
+from IPython.display import Audio
 
 def get_args_parser():
     parser = argparse.ArgumentParser('Visual-Language-Pretraining (VLP) V2 scripts', add_help=False)
@@ -305,7 +308,19 @@ def evaluate(args, config, dev_dataloader, model, tokenizer, epoch, beam_size=1,
                     results[name]['txt_hyp'], results[name]['txt_ref'] = txt_hyp, txt_ref
 
                     print('txt_hyp: ', txt_hyp)
+
+                    text = txt_hyp
+
+                    language = 'de'
+
+                    tts = gTTS(text=text, lang=language)
+
+                    tts.save("hello_colab.mp3")
+
+                    Audio("hello_colab.mp3", autoplay=True)
+
                     print('txt_ref: ', txt_ref)
+
             metric_logger.update(loss=output['total_loss'].item())
         if do_recognition:
             evaluation_results = {}
