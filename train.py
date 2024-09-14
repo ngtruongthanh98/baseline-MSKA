@@ -297,6 +297,9 @@ def evaluate(args, config, dev_dataloader, model, tokenizer, epoch, beam_size=1,
                         results[name]['gls_ref'] = gls_ref.upper() if tokenizer.lower_case \
                             else gls_ref
 
+            result_dir = 'result'
+            os.makedirs(result_dir, exist_ok=True)
+
             if do_translation:
                 generate_output = model.generate_txt(
                     transformer_inputs=output['transformer_inputs'],
@@ -307,8 +310,8 @@ def evaluate(args, config, dev_dataloader, model, tokenizer, epoch, beam_size=1,
 
                     print('txt_hyp: ', txt_hyp)
 
-                    # Create directory for the sample
-                    sample_dir = f'sample_{idx}'
+                    # Create directory for the sample inside the result directory
+                    sample_dir = os.path.join(result_dir, f'sample_{idx}')
                     os.makedirs(sample_dir, exist_ok=True)
 
                     # Save txt_hyp as an mp3 file
@@ -317,8 +320,8 @@ def evaluate(args, config, dev_dataloader, model, tokenizer, epoch, beam_size=1,
                     tts_hyp.save(hyp_path)
 
                     # Save txt_ref as an mp3 file
-                    tts_ref = gTTS(text=txt_ref, lang='de')
                     ref_path = os.path.join(sample_dir, f'txt_ref_sample_{idx}.mp3')
+                    tts_ref = gTTS(text=txt_ref, lang='de')
                     tts_ref.save(ref_path)
 
                     # Create a text file to store txt_hyp and txt_ref
