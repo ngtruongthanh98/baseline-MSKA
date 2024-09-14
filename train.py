@@ -296,28 +296,40 @@ def evaluate(args, config, dev_dataloader, model, tokenizer, epoch, beam_size=1,
                                 else ' '.join(gls_hyp)
                         results[name]['gls_ref'] = gls_ref.upper() if tokenizer.lower_case \
                             else gls_ref
+
             if do_translation:
                 generate_output = model.generate_txt(
                     transformer_inputs=output['transformer_inputs'],
                     generate_cfg=generate_cfg)
 
-                # print('generate_output: ', generate_output)
-
-                for name, txt_hyp, txt_ref in zip(src_input['name'], generate_output['decoded_sequences'],
-                                                  src_input['text']):
+                for idx, (name, txt_hyp, txt_ref) in enumerate(zip(src_input['name'], generate_output['decoded_sequences'], src_input['text']), start=1):
                     results[name]['txt_hyp'], results[name]['txt_ref'] = txt_hyp, txt_ref
 
                     print('txt_hyp: ', txt_hyp)
 
-                    text = txt_hyp
+                    # Create directory for the sample
+                    sample_dir = f'sample_{idx}'
+                    os.makedirs(sample_dir, exist_ok=True)
 
-                    language = 'de'
+                    # Save txt_hyp as an mp3 file
+                    tts_hyp = gTTS(text=txt_hyp, lang='de')
+                    hyp_path = os.path.join(sample_dir, f'txt_hyp_sample_{idx}.mp3')
+                    tts_hyp.save(hyp_path)
 
-                    tts = gTTS(text=text, lang=language)
+                    # Save txt_ref as an mp3 file
+                    tts_ref = gTTS(text=txt_ref, lang='de')
+                    ref_path = os.path.join(sample_dir, f'txt_ref_sample_{idx}.mp3')
+                    tts_ref.save(ref_path)
 
-                    tts.save("hello_colab.mp3")
+                    # Create a text file to store txt_hyp and txt_ref
+                    text_file_path = os.path.join(sample_dir, f'sample_{idx}.txt')
+                    with open(text_file_path, 'w') as text_file:
+                        text_file.write(f"txt_hyp: {txt_hyp}\n")
+                        text_file.write(f"txt_ref: {txt_ref}\n")
 
-                    Audio("hello_colab.mp3", autoplay=True)
+                    # Optionally, play the audio (comment out if not needed)
+                    # Audio(hyp_path, autoplay=True)
+                    # Audio(ref_path, autoplay=True)
 
                     print('txt_ref: ', txt_ref)
 
