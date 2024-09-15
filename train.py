@@ -19,6 +19,7 @@ import sys
 from typing import Iterable
 from loguru import logger
 from datetime import datetime
+import hashlib
 
 # *metric
 from metrics import wer_list, bleu, rouge
@@ -308,33 +309,31 @@ def evaluate(args, config, dev_dataloader, model, tokenizer, epoch, beam_size=1,
                     generate_cfg=generate_cfg)
 
                 for idx, (name, txt_hyp, txt_ref) in enumerate(zip(src_input['name'], generate_output['decoded_sequences'], src_input['text']), start=1):
-                    item_index = 0
                     print('name: ', name)
                     results[name]['txt_hyp'], results[name]['txt_ref'] = txt_hyp, txt_ref
 
                     print('txt_hyp: ', txt_hyp)
-                    current_txt_hyp = txt_hyp
 
-                    if current_txt_hyp != txt_hyp:
-                        item_index += 1
-                        current_txt_hyp = txt_hyp
+                    # Convert txt_hyp to a hash code
+                    hash_object = hashlib.sha256(txt_hyp.encode())
+                    txt_hyp_hash = hash_object.hexdigest()
 
                     # Create directory for the sample inside the result directory
-                    sample_dir = os.path.join(result_dir, f'sample_{idx}_{item_index}')
+                    sample_dir = os.path.join(result_dir, f'sample_{idx}_{txt_hyp_hash}')
                     os.makedirs(sample_dir, exist_ok=True)
 
                     # Save txt_hyp as an mp3 file
                     tts_hyp = gTTS(text=txt_hyp, lang='de')
-                    hyp_path = os.path.join(sample_dir, f'txt_hyp_sample_{idx}_{item_index}.mp3')
+                    hyp_path = os.path.join(sample_dir, f'txt_hyp_sample_{idx}_{txt_hyp_hash}.mp3')
                     tts_hyp.save(hyp_path)
 
                     # Save txt_ref as an mp3 file
-                    ref_path = os.path.join(sample_dir, f'txt_ref_sample_{idx}_{item_index}.mp3')
+                    ref_path = os.path.join(sample_dir, f'txt_ref_sample_{idx}_{txt_hyp_hash}.mp3')
                     tts_ref = gTTS(text=txt_ref, lang='de')
                     tts_ref.save(ref_path)
 
                     # Create a text file to store txt_hyp and txt_ref
-                    text_file_path = os.path.join(sample_dir, f'sample_{idx}_{item_index}.txt')
+                    text_file_path = os.path.join(sample_dir, f'sample_{idx}_{txt_hyp_hash}.txt')
                     with open(text_file_path, 'w') as text_file:
                         text_file.write(f"txt_hyp: {txt_hyp}\n")
                         text_file.write(f"txt_ref: {txt_ref}\n")
