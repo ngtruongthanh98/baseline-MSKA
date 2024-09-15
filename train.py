@@ -305,36 +305,37 @@ def evaluate(args, config, dev_dataloader, model, tokenizer, epoch, beam_size=1,
                     transformer_inputs=output['transformer_inputs'],
                     generate_cfg=generate_cfg)
 
-                for idx, (name, txt_hyp, txt_ref) in enumerate(zip(src_input['name'], generate_output['decoded_sequences'], src_input['text']), start=1):
-                    results[name]['txt_hyp'], results[name]['txt_ref'] = txt_hyp, txt_ref
+                for batch_idx, (batch_name, batch_txt_hyp, batch_txt_ref) in enumerate(zip(src_input['name'], generate_output['decoded_sequences'], src_input['text']), start=1):
+                    for idx, (name, txt_hyp, txt_ref) in enumerate(zip(batch_name, batch_txt_hyp, batch_txt_ref), start=1):
+                        results[name]['txt_hyp'], results[name]['txt_ref'] = txt_hyp, txt_ref
 
-                    print('txt_hyp: ', txt_hyp)
+                        print('txt_hyp: ', txt_hyp)
 
-                    # Create directory for the sample inside the result directory
-                    sample_dir = os.path.join(result_dir, f'sample_{idx}')
-                    os.makedirs(sample_dir, exist_ok=True)
+                        # Create directory for the sample inside the result directory
+                        sample_dir = os.path.join(result_dir, f'sample_{batch_idx}_{idx}')
+                        os.makedirs(sample_dir, exist_ok=True)
 
-                    # Save txt_hyp as an mp3 file
-                    tts_hyp = gTTS(text=txt_hyp, lang='de')
-                    hyp_path = os.path.join(sample_dir, f'txt_hyp_sample_{idx}.mp3')
-                    tts_hyp.save(hyp_path)
+                        # Save txt_hyp as an mp3 file
+                        tts_hyp = gTTS(text=txt_hyp, lang='de')
+                        hyp_path = os.path.join(sample_dir, f'txt_hyp_sample_{batch_idx}_{idx}.mp3')
+                        tts_hyp.save(hyp_path)
 
-                    # Save txt_ref as an mp3 file
-                    ref_path = os.path.join(sample_dir, f'txt_ref_sample_{idx}.mp3')
-                    tts_ref = gTTS(text=txt_ref, lang='de')
-                    tts_ref.save(ref_path)
+                        # Save txt_ref as an mp3 file
+                        ref_path = os.path.join(sample_dir, f'txt_ref_sample_{batch_idx}_{idx}.mp3')
+                        tts_ref = gTTS(text=txt_ref, lang='de')
+                        tts_ref.save(ref_path)
 
-                    # Create a text file to store txt_hyp and txt_ref
-                    text_file_path = os.path.join(sample_dir, f'sample_{idx}.txt')
-                    with open(text_file_path, 'w') as text_file:
-                        text_file.write(f"txt_hyp: {txt_hyp}\n")
-                        text_file.write(f"txt_ref: {txt_ref}\n")
+                        # Create a text file to store txt_hyp and txt_ref
+                        text_file_path = os.path.join(sample_dir, f'sample_{batch_idx}_{idx}.txt')
+                        with open(text_file_path, 'w') as text_file:
+                            text_file.write(f"txt_hyp: {txt_hyp}\n")
+                            text_file.write(f"txt_ref: {txt_ref}\n")
 
-                    # Optionally, play the audio (comment out if not needed)
-                    # Audio(hyp_path, autoplay=True)
-                    # Audio(ref_path, autoplay=True)
+                        # Optionally, play the audio (comment out if not needed)
+                        # Audio(hyp_path, autoplay=True)
+                        # Audio(ref_path, autoplay=True)
 
-                    print('txt_ref: ', txt_ref)
+                        print('txt_ref: ', txt_ref)
 
             metric_logger.update(loss=output['total_loss'].item())
         if do_recognition:
