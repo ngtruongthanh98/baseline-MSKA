@@ -20,6 +20,7 @@ from typing import Iterable
 from loguru import logger
 from datetime import datetime
 import hashlib
+import gc
 
 # *metric
 from metrics import wer_list, bleu, rouge
@@ -343,6 +344,10 @@ def evaluate(args, config, dev_dataloader, model, tokenizer, epoch, beam_size=1,
                     # Audio(ref_path, autoplay=True)
 
                     print('txt_ref: ', txt_ref)
+
+                    # Clear variables and call garbage collection
+                    del tts_hyp, tts_ref, hash_object, txt_hyp_hash
+                    gc.collect()
 
             metric_logger.update(loss=output['total_loss'].item())
         if do_recognition:
