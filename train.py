@@ -309,9 +309,15 @@ def evaluate(args, config, dev_dataloader, model, tokenizer, epoch, beam_size=1,
 
                 for idx, (name, txt_hyp, txt_ref) in enumerate(zip(src_input['name'], generate_output['decoded_sequences'], src_input['text']), start=1):
                     item_index = 0
+                    print('name: ', name)
                     results[name]['txt_hyp'], results[name]['txt_ref'] = txt_hyp, txt_ref
 
                     print('txt_hyp: ', txt_hyp)
+                    current_txt_hyp = txt_hyp
+
+                    if current_txt_hyp != txt_hyp:
+                        item_index += 1
+                        current_txt_hyp = txt_hyp
 
                     # Create directory for the sample inside the result directory
                     sample_dir = os.path.join(result_dir, f'sample_{idx}_{item_index}')
@@ -338,8 +344,6 @@ def evaluate(args, config, dev_dataloader, model, tokenizer, epoch, beam_size=1,
                     # Audio(ref_path, autoplay=True)
 
                     print('txt_ref: ', txt_ref)
-
-                    item_index = item_index + 1
 
             metric_logger.update(loss=output['total_loss'].item())
         if do_recognition:
