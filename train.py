@@ -18,6 +18,7 @@ import math
 import sys
 from typing import Iterable
 from loguru import logger
+from datetime import datetime
 
 # *metric
 from metrics import wer_list, bleu, rouge
@@ -297,7 +298,8 @@ def evaluate(args, config, dev_dataloader, model, tokenizer, epoch, beam_size=1,
                         results[name]['gls_ref'] = gls_ref.upper() if tokenizer.lower_case \
                             else gls_ref
 
-            result_dir = 'result'
+            current_timestamp = datetime.now().strftime('%d-%m-%Y_%H-%M-%S')
+            result_dir = f'result_{current_timestamp}'
             os.makedirs(result_dir, exist_ok=True)
 
             if do_translation:
