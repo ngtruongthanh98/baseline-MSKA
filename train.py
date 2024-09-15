@@ -299,7 +299,7 @@ def evaluate(args, config, dev_dataloader, model, tokenizer, epoch, beam_size=1,
                             else gls_ref
 
             current_timestamp = datetime.now().strftime('%d-%m-%Y_%H-%M-%S')
-            result_dir = f'result_{current_timestamp}'
+            result_dir = f'../result_{current_timestamp}'
             os.makedirs(result_dir, exist_ok=True)
 
             if do_translation:
