@@ -3,9 +3,12 @@ device: cuda
 do_translation: True
 do_recognition: True
 data:
-  train_label_path: data/Phoenix-2014T/Phoenix-2014T.train
-  dev_label_path: data/Phoenix-2014T/Phoenix-2014T.dev
-  test_label_path: data/Phoenix-2014T/Phoenix-2014T.test
+  # train_label_path: data/Phoenix-2014T/Phoenix-2014T.train
+  # dev_label_path: data/Phoenix-2014T/Phoenix-2014T.dev
+  # test_label_path: data/Phoenix-2014T/Phoenix-2014T.test
+  train_label_path: ../data/Phoenix-2014T/Phoenix-2014T.train
+  dev_label_path: ../data/Phoenix-2014T/Phoenix-2014T.dev
+  test_label_path: ../data/Phoenix-2014T/Phoenix-2014T.test
   max_length: 300
   input_streams: keypoint
   level: word  #word or char
@@ -21,7 +24,8 @@ testing:
     max_length: 100
     num_beams: 5
 gloss:
-  gloss2id_file: data/Phoenix-2014T/gloss2ids.pkl
+  # gloss2id_file: data/Phoenix-2014T/gloss2ids.pkl
+  gloss2id_file: ../data/Phoenix-2014T/gloss2ids.pkl
 training:
   wandb: disabled # online or disabled
   model_dir: /outputs/phoenix-2014T_SLT
@@ -44,7 +48,8 @@ training:
     t_max: 40
 model:
   RecognitionNetwork:
-    pretrained_path: pretrained_models/Phoenix-2014T_SLR/best.pth
+    # pretrained_path: pretrained_models/Phoenix-2014T_SLR/best.pth
+    pretrained_path: ../pretrained_models/Phoenix-2014T_SLR/best.pth
     input_type: keypoint
     DSTA-Net:
       net: [[64, 64, 16, 7, 2], [64, 64, 16, 3, 1],
@@ -59,7 +64,8 @@ model:
       face: [23,26,29,33,36,39,41,43,46,48,53,56,59,62,65,68,71,72,73,74,75,76,77,79,80,81]
       mouth: [71,72,73,74,75,76,77,79,80,81]
     GlossTokenizer:
-      gloss2id_file: data/Phoenix-2014T/gloss2ids.pkl
+      # gloss2id_file: data/Phoenix-2014T/gloss2ids.pkl
+      gloss2id_file: ../data/Phoenix-2014T/gloss2ids.pkl
     body_visual_head:
       input_size: 256
       hidden_size: 512
@@ -95,16 +101,22 @@ model:
   TranslationNetwork:
     GlossEmbedding:
       freeze: false
-      gloss2embed_file: pretrained_models/mBart_de/gloss_embeddings.bin
+      # gloss2embed_file: pretrained_models/mBart_de/gloss_embeddings.bin
+      gloss2embed_file: ../pretrained_models/mBart_de/gloss_embeddings.bin
     GlossTokenizer:
-      gloss2id_file: pretrained_models/mBart_de/gloss2ids.pkl
+      # gloss2id_file: pretrained_models/mBart_de/gloss2ids.pkl
+      gloss2id_file: ../pretrained_models/mBart_de/gloss2ids.pkl
       src_lang: de_DGS
     TextTokenizer:
-      pretrained_model_name_or_path: pretrained_models/mBart_de
-      pruneids_file: pretrained_models/mBart_de/map_ids.pkl
+      # pretrained_model_name_or_path: pretrained_models/mBart_de
+      # pruneids_file: pretrained_models/mBart_de/map_ids.pkl
+      pretrained_model_name_or_path: ../pretrained_models/mBart_de
+      pruneids_file: ../pretrained_models/mBart_de/map_ids.pkl
       tgt_lang: de_DE
-    load_ckpt: pretrained_models/phoenix-2014T_g2t/best.ckpt
-    pretrained_model_name_or_path: pretrained_models/mBart_de
+    # load_ckpt: pretrained_models/phoenix-2014T_g2t/best.ckpt
+    # pretrained_model_name_or_path: pretrained_models/mBart_de
+    load_ckpt: ../pretrained_models/phoenix-2014T_g2t/best.ckpt
+    pretrained_model_name_or_path: ../pretrained_models/mBart_de
     overwrite_cfg:
       attention_dropout: 0.1
       dropout: 0.3
