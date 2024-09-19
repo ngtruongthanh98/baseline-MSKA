@@ -341,7 +341,7 @@ def evaluate(args, config, dev_dataloader, model, tokenizer, epoch, beam_size=1,
                     print('txt_ref: ', txt_ref)
 
                     # Clear variables and call garbage collection
-                    del tts_hyp, tts_ref, hash_object, txt_hyp_hash
+                    del tts_hyp, tts_ref
                     gc.collect()
 
             metric_logger.update(loss=output['total_loss'].item())
