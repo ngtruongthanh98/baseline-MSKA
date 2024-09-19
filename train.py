@@ -18,8 +18,6 @@ import math
 import sys
 from typing import Iterable
 from loguru import logger
-from datetime import datetime
-import hashlib
 import gc
 
 # *metric
@@ -300,8 +298,7 @@ def evaluate(args, config, dev_dataloader, model, tokenizer, epoch, beam_size=1,
                         results[name]['gls_ref'] = gls_ref.upper() if tokenizer.lower_case \
                             else gls_ref
 
-            current_timestamp = datetime.now().strftime('%d-%m-%Y_%H-%M-%S')
-            result_dir = f'../result_{current_timestamp}'
+            result_dir = f'../result'
             os.makedirs(result_dir, exist_ok=True)
 
             if do_translation:
@@ -315,26 +312,22 @@ def evaluate(args, config, dev_dataloader, model, tokenizer, epoch, beam_size=1,
 
                     print('txt_hyp: ', txt_hyp)
 
-                    # Convert txt_hyp to a hash code
-                    hash_object = hashlib.sha256(txt_hyp.encode())
-                    txt_hyp_hash = hash_object.hexdigest()
-
                     # Create directory for the sample inside the result directory
-                    sample_dir = os.path.join(result_dir, f'sample_{idx}_{txt_hyp_hash}')
+                    sample_dir = os.path.join(result_dir, f'{name}')
                     os.makedirs(sample_dir, exist_ok=True)
 
                     # Save txt_hyp as an mp3 file
                     tts_hyp = gTTS(text=txt_hyp, lang='de')
-                    hyp_path = os.path.join(sample_dir, f'txt_hyp_sample_{idx}_{txt_hyp_hash}.mp3')
+                    hyp_path = os.path.join(sample_dir, f'txt_hyp_{name}.mp3')
                     tts_hyp.save(hyp_path)
 
                     # Save txt_ref as an mp3 file
-                    ref_path = os.path.join(sample_dir, f'txt_ref_sample_{idx}_{txt_hyp_hash}.mp3')
+                    ref_path = os.path.join(sample_dir, f'txt_ref_{name}.mp3')
                     tts_ref = gTTS(text=txt_ref, lang='de')
                     tts_ref.save(ref_path)
 
                     # Create a text file to store txt_hyp and txt_ref
-                    text_file_path = os.path.join(sample_dir, f'sample_{idx}_{txt_hyp_hash}.txt')
+                    text_file_path = os.path.join(sample_dir, f'{name}.txt')
                     with open(text_file_path, 'w') as text_file:
                         text_file.write(f"txt_hyp: {txt_hyp}\n")
                         text_file.write(f"txt_ref: {txt_ref}\n")
