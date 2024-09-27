@@ -19,6 +19,7 @@ import sys
 from typing import Iterable
 from loguru import logger
 import gc
+import re
 
 # *metric
 from metrics import wer_list, bleu, rouge
@@ -310,12 +311,19 @@ def evaluate(args, config, dev_dataloader, model, tokenizer, epoch, beam_size=1,
                     print('name: ', name)
                     results[name]['txt_hyp'], results[name]['txt_ref'] = txt_hyp, txt_ref
 
-                    temp_name = name.replace("/", "-")
+                    match = re.match(r'^(test|dev)/(.+)$', name)
+                    if match:
+                        prefix, rest_of_name = match.groups()
+                        temp_name = rest_of_name.replace("/", "-")
+                        sub_dir = os.path.join(result_dir, prefix)
+                    else:
+                        temp_name = name.replace("/", "-")
+                        sub_dir = result_dir
 
                     print('txt_hyp: ', txt_hyp)
 
                     # Create directory for the sample inside the result directory
-                    sample_dir = os.path.join(result_dir, f'{temp_name}')
+                    sample_dir = os.path.join(sub_dir, f'{temp_name}')
                     os.makedirs(sample_dir, exist_ok=True)
 
                     # Save txt_hyp as an mp3 file
