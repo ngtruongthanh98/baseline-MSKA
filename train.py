@@ -35,7 +35,7 @@ from IPython.display import Audio
 
 def get_args_parser():
     parser = argparse.ArgumentParser('Visual-Language-Pretraining (VLP) V2 scripts', add_help=False)
-    parser.add_argument('--batch-size', default=8, type=int)
+    parser.add_argument('--batch-size', default=4, type=int)
     parser.add_argument('--epochs', default=100, type=int)
 
     # distributed training parameters
