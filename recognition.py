@@ -283,7 +283,7 @@ class DSTA(nn.Module):
         # output = torch.cat([left, face, right, body], dim=-1)
         # left_output = torch.cat([left, face], dim=-1)
         # right_output = torch.cat([right,  face], dim=-1)
-                output = torch.cat([left, right, body], dim=-1)
+        output = torch.cat([left, right, body], dim=-1)
         left_output = torch.cat([left], dim=-1)
         right_output = torch.cat([right], dim=-1)
         return output, left_output, right_output, body
