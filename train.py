@@ -366,19 +366,19 @@ def evaluate(args, config, dev_dataloader, model, tokenizer, epoch, beam_size=1,
                         }
                     )
 
-                    print('last_result: ', last_result)
-
-                    os.makedirs('../result/json', exist_ok=True)
-
-                    timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
-
-                    # store data to json file
-                    with open(f'../result/json/last_result_{timestamp}.json', 'w') as f:
-                        json.dump(last_result, f, indent=4)
-
                     # Clear variables and call garbage collection
                     del tts_hyp, tts_ref
                     gc.collect()
+
+                print('last_result: ', last_result)
+
+                os.makedirs('../result/json', exist_ok=True)
+
+                timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+
+                # store data to json file
+                with open(f'../result/json/last_result_{timestamp}.json', 'w') as f:
+                    json.dump(last_result, f, indent=4)
 
             metric_logger.update(loss=output['total_loss'].item())
         if do_recognition:
