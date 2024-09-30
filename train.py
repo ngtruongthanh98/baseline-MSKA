@@ -302,7 +302,7 @@ def evaluate(args, config, dev_dataloader, model, tokenizer, epoch, beam_size=1,
             result_dir = f'../result'
             os.makedirs(result_dir, exist_ok=True)
 
-            results = {"dev": [], "test": []}
+            results_data = {"dev": [], "test": []}
 
             if do_translation:
                 generate_output = model.generate_txt(
@@ -311,6 +311,7 @@ def evaluate(args, config, dev_dataloader, model, tokenizer, epoch, beam_size=1,
 
                 for idx, (name, txt_hyp, txt_ref) in enumerate(zip(src_input['name'], generate_output['decoded_sequences'], src_input['text']), start=1):
                     print('name: ', name)
+                    results[name]['txt_hyp'], results[name]['txt_ref'] = txt_hyp, txt_ref
 
                     match = re.match(r'^(test|dev)/(.+)$', name)
                     if match:
@@ -351,26 +352,22 @@ def evaluate(args, config, dev_dataloader, model, tokenizer, epoch, beam_size=1,
 
                     # Add the results to the dictionary
                     if match:
-                        results[prefix].append({
+                        results_data[prefix].append({
                             "name": temp_name,
                             "txt_hyp": txt_hyp,
                             "txt_ref": txt_ref
                         })
-                    # else:
-                    #     results["test"].append({
-                    #         "name": temp_name,
-                    #         "txt_hyp": txt_hyp,
-                    #         "txt_ref": txt_ref
-                    #     })
 
                     # Clear variables and call garbage collection
                     del tts_hyp, tts_ref
                     gc.collect()
 
-            # Write the results to a JSON file
+                    print('results_data: ', results_data)
+
+                        # Write the results to a JSON file
             json_file_path = os.path.join(result_dir, 'result_mska.json')
             with open(json_file_path, 'w') as json_file:
-                json.dump(results, json_file, indent=4)
+                json.dump(results_data, json_file, indent=4)
 
             metric_logger.update(loss=output['total_loss'].item())
         if do_recognition:
