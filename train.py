@@ -302,6 +302,8 @@ def evaluate(args, config, dev_dataloader, model, tokenizer, epoch, beam_size=1,
             result_dir = f'../result'
             os.makedirs(result_dir, exist_ok=True)
 
+            results = {"dev": [], "test": []}
+
             if do_translation:
                 generate_output = model.generate_txt(
                     transformer_inputs=output['transformer_inputs'],
@@ -348,9 +350,28 @@ def evaluate(args, config, dev_dataloader, model, tokenizer, epoch, beam_size=1,
 
                     print('txt_ref: ', txt_ref)
 
+                    # Add the results to the dictionary
+                    if match:
+                        results[prefix].append({
+                            "name": temp_name,
+                            "txt_hyp": txt_hyp,
+                            "txt_ref": txt_ref
+                        })
+                    else:
+                        results["test"].append({
+                            "name": temp_name,
+                            "txt_hyp": txt_hyp,
+                            "txt_ref": txt_ref
+                        })
+
                     # Clear variables and call garbage collection
                     del tts_hyp, tts_ref
                     gc.collect()
+
+            # Write the results to a JSON file
+            json_file_path = os.path.join(result_dir, 'result_mska.json')
+            with open(json_file_path, 'w') as json_file:
+                json.dump(results, json_file, indent=4)
 
             metric_logger.update(loss=output['total_loss'].item())
         if do_recognition:
