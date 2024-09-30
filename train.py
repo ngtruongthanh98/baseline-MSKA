@@ -280,6 +280,8 @@ def evaluate(args, config, dev_dataloader, model, tokenizer, epoch, beam_size=1,
     print_freq = 10
     results = defaultdict(dict)
 
+    last_result = []
+
     with torch.no_grad():
         for step, (src_input) in enumerate(metric_logger.log_every(dev_dataloader, print_freq, header)):
             output = model(src_input)
@@ -301,8 +303,6 @@ def evaluate(args, config, dev_dataloader, model, tokenizer, epoch, beam_size=1,
 
             result_dir = f'../result'
             os.makedirs(result_dir, exist_ok=True)
-
-            last_result = []
 
             if do_translation:
                 generate_output = model.generate_txt(
@@ -370,8 +370,6 @@ def evaluate(args, config, dev_dataloader, model, tokenizer, epoch, beam_size=1,
                     del tts_hyp, tts_ref
                     gc.collect()
 
-                print('last_result: ', last_result)
-
             metric_logger.update(loss=output['total_loss'].item())
         if do_recognition:
             evaluation_results = {}
@@ -410,6 +408,14 @@ def evaluate(args, config, dev_dataloader, model, tokenizer, epoch, beam_size=1,
             metric_logger.update(bleu3=bleu_dict['bleu3'])
             metric_logger.update(bleu4=bleu_dict['bleu4'])
             metric_logger.update(rouge=rouge_score)
+
+
+    print('last_result: ', last_result)
+
+    # store data to json file
+    with open(f'../result/last_result_{epoch}.json', 'w') as f:
+        json.dump(last_result, f, indent=4)
+
 
     if args.run:
         args.run.log(
