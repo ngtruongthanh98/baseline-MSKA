@@ -412,8 +412,10 @@ def evaluate(args, config, dev_dataloader, model, tokenizer, epoch, beam_size=1,
 
     print('last_result: ', last_result)
 
+    os.makedirs('../result/json', exist_ok=True)
+
     # store data to json file
-    with open(f'../result/last_result_{epoch}.json', 'w') as f:
+    with open(f'../result/json/last_result_{epoch}.json', 'w') as f:
         json.dump(last_result, f, indent=4)
 
 
