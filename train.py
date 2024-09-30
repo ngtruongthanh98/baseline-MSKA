@@ -299,9 +299,10 @@ def evaluate(args, config, dev_dataloader, model, tokenizer, epoch, beam_size=1,
                         results[name]['gls_ref'] = gls_ref.upper() if tokenizer.lower_case \
                             else gls_ref
 
-            result_dir = f'../result'
+            result_dir = '../result'
             os.makedirs(result_dir, exist_ok=True)
 
+            # Initialize results_data outside the loop
             results_data = []
 
             if do_translation:
@@ -312,6 +313,8 @@ def evaluate(args, config, dev_dataloader, model, tokenizer, epoch, beam_size=1,
                 for idx, (name, txt_hyp, txt_ref) in enumerate(zip(src_input['name'], generate_output['decoded_sequences'], src_input['text']), start=1):
                     print('name: ', name)
                     results[name]['txt_hyp'], results[name]['txt_ref'] = txt_hyp, txt_ref
+
+                    temp_arr = []
 
                     match = re.match(r'^(test|dev)/(.+)$', name)
                     if match:
@@ -343,7 +346,7 @@ def evaluate(args, config, dev_dataloader, model, tokenizer, epoch, beam_size=1,
                     with open(text_file_path, 'w') as text_file:
                         text_file.write(f"txt_hyp: {txt_hyp}\n")
                         text_file.write(f"txt_ref: {txt_ref}\n")
-                        results_data.append({
+                        temp_arr.append({
                             "name": temp_name,
                             "type": prefix,
                             "txt_hyp": txt_hyp,
@@ -362,7 +365,10 @@ def evaluate(args, config, dev_dataloader, model, tokenizer, epoch, beam_size=1,
 
                     print('results_data: ', results_data)
 
-                        # Write the results to a JSON file
+                    for item in temp_arr:
+                        results_data.append(item)
+
+            # Write the results to a JSON file
             json_file_path = os.path.join(result_dir, 'result_mska.json')
             with open(json_file_path, 'w') as json_file:
                 json.dump(results_data, json_file, indent=4)
