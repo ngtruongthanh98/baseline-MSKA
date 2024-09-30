@@ -299,17 +299,13 @@ def evaluate(args, config, dev_dataloader, model, tokenizer, epoch, beam_size=1,
                         results[name]['gls_ref'] = gls_ref.upper() if tokenizer.lower_case \
                             else gls_ref
 
-            result_dir = '../result'
+            result_dir = f'../result'
             os.makedirs(result_dir, exist_ok=True)
-
-            # Initialize results_data outside the loop
-            results_data = []
 
             if do_translation:
                 generate_output = model.generate_txt(
                     transformer_inputs=output['transformer_inputs'],
-                    generate_cfg=generate_cfg
-                )
+                    generate_cfg=generate_cfg)
 
                 for idx, (name, txt_hyp, txt_ref) in enumerate(zip(src_input['name'], generate_output['decoded_sequences'], src_input['text']), start=1):
                     print('name: ', name)
@@ -346,30 +342,22 @@ def evaluate(args, config, dev_dataloader, model, tokenizer, epoch, beam_size=1,
                         text_file.write(f"txt_hyp: {txt_hyp}\n")
                         text_file.write(f"txt_ref: {txt_ref}\n")
 
-                    # Append the result to results_data
-                    results_data.append({
-                        "name": temp_name,
-                        "type": prefix,
-                        "txt_hyp": txt_hyp,
-                        "txt_ref": txt_ref
-                    })
-
                     # Optionally, play the audio (comment out if not needed)
                     # Audio(hyp_path, autoplay=True)
                     # Audio(ref_path, autoplay=True)
 
                     print('txt_ref: ', txt_ref)
 
+                    print(
+                        f'Name: {name}' + '\n' +
+                        f'txt_hyp: {txt_hyp}' + '\n' +
+                        f'txt_ref: {txt_ref}' + '\n' +
+                        f'type: {prefix}'
+                    )
+
                     # Clear variables and call garbage collection
                     del tts_hyp, tts_ref
                     gc.collect()
-
-                    print('results_data: ', results_data)
-
-                    # Write the results to a JSON file for each loop iteration
-                    json_file_path = os.path.join(result_dir, f'result_mska_{idx}.json')
-                    with open(json_file_path, 'w') as json_file:
-                        json.dump(results_data, json_file, indent=4)
 
             metric_logger.update(loss=output['total_loss'].item())
         if do_recognition:
