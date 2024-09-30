@@ -356,12 +356,12 @@ def evaluate(args, config, dev_dataloader, model, tokenizer, epoch, beam_size=1,
                             "txt_hyp": txt_hyp,
                             "txt_ref": txt_ref
                         })
-                    else:
-                        results["test"].append({
-                            "name": temp_name,
-                            "txt_hyp": txt_hyp,
-                            "txt_ref": txt_ref
-                        })
+                    # else:
+                    #     results["test"].append({
+                    #         "name": temp_name,
+                    #         "txt_hyp": txt_hyp,
+                    #         "txt_ref": txt_ref
+                    #     })
 
                     # Clear variables and call garbage collection
                     del tts_hyp, tts_ref
