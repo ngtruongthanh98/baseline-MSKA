@@ -311,7 +311,6 @@ def evaluate(args, config, dev_dataloader, model, tokenizer, epoch, beam_size=1,
 
                 for idx, (name, txt_hyp, txt_ref) in enumerate(zip(src_input['name'], generate_output['decoded_sequences'], src_input['text']), start=1):
                     print('name: ', name)
-                    results[name]['txt_hyp'], results[name]['txt_ref'] = txt_hyp, txt_ref
 
                     match = re.match(r'^(test|dev)/(.+)$', name)
                     if match:
