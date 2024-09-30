@@ -217,18 +217,18 @@ class DSTA(nn.Module):
             nn.BatchNorm2d(in_channels),
             nn.LeakyReLU(0.1),
         )
-        # self.face_input_map = nn.Sequential(
-        #     nn.Conv2d(num_channel, in_channels, 1),
-        #     nn.BatchNorm2d(in_channels),
-        #     nn.LeakyReLU(0.1),
-        # )
-        # self.face_graph_layers = nn.ModuleList()
-        # for index, (in_channels, out_channels, inter_channels, t_kernel, stride) in enumerate(config):
-        #     self.face_graph_layers.append(
-        #         STAttentionBlock(in_channels, out_channels, inter_channels, stride=stride, t_kernel=t_kernel,num_node=26,
-        #                          num_frame=num_frame,
-        #                          **param))
-        #     num_frame = int(num_frame / stride + 0.5)
+        self.face_input_map = nn.Sequential(
+            nn.Conv2d(num_channel, in_channels, 1),
+            nn.BatchNorm2d(in_channels),
+            nn.LeakyReLU(0.1),
+        )
+        self.face_graph_layers = nn.ModuleList()
+        for index, (in_channels, out_channels, inter_channels, t_kernel, stride) in enumerate(config):
+            self.face_graph_layers.append(
+                STAttentionBlock(in_channels, out_channels, inter_channels, stride=stride, t_kernel=t_kernel,num_node=26,
+                                 num_frame=num_frame,
+                                 **param))
+            num_frame = int(num_frame / stride + 0.5)
         num_frame = self.num_frame
         self.left_graph_layers = nn.ModuleList()
         for index, (in_channels, out_channels, inter_channels, t_kernel, stride) in enumerate(config):
@@ -262,10 +262,10 @@ class DSTA(nn.Module):
         x = x.permute(0, 1, 2, 3).contiguous().view(N, C, T, V)
         left = self.left_input_map(x[:, :, :, self.cfg['left']])
         right = self.right_input_map(x[:, :, :, self.cfg['right']])
-        # face = self.face_input_map(x[:, :, :, self.cfg['face']])
+        face = self.face_input_map(x[:, :, :, self.cfg['face']])
         body = self.body_input_map(x[:, :, :, self.cfg['body']])
-        # for i, m in enumerate(self.face_graph_layers):
-        #     face = m(face)
+        for i, m in enumerate(self.face_graph_layers):
+            face = m(face)
         for i, m in enumerate(self.left_graph_layers):
             left = m(left)
         for i, m in enumerate(self.right_graph_layers):
@@ -274,18 +274,15 @@ class DSTA(nn.Module):
             body = m(body)  # [B,256,T/4,N] -> [B,256]
         left = left.permute(0, 2, 1, 3).contiguous()
         right = right.permute(0, 2, 1, 3).contiguous()
-        # face = face.permute(0, 2, 1, 3).contiguous()
+        face = face.permute(0, 2, 1, 3).contiguous()
         body = body.permute(0, 2, 1, 3).contiguous()
         body = body.mean(3)
-        # face = face.mean(3)
+        face = face.mean(3)
         left = left.mean(3)
         right = right.mean(3)
-        # output = torch.cat([left, face, right, body], dim=-1)
-        # left_output = torch.cat([left, face], dim=-1)
-        # right_output = torch.cat([right,  face], dim=-1)
-        output = torch.cat([left, right, body], dim=-1)
-        left_output = torch.cat([left], dim=-1)
-        right_output = torch.cat([right], dim=-1)
+        output = torch.cat([left, face, right, body], dim=-1)
+        left_output = torch.cat([left, face], dim=-1)
+        right_output = torch.cat([right,  face], dim=-1)
         return output, left_output, right_output, body
 
 
