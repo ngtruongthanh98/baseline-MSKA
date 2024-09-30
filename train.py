@@ -308,13 +308,12 @@ def evaluate(args, config, dev_dataloader, model, tokenizer, epoch, beam_size=1,
             if do_translation:
                 generate_output = model.generate_txt(
                     transformer_inputs=output['transformer_inputs'],
-                    generate_cfg=generate_cfg)
+                    generate_cfg=generate_cfg
+                )
 
                 for idx, (name, txt_hyp, txt_ref) in enumerate(zip(src_input['name'], generate_output['decoded_sequences'], src_input['text']), start=1):
                     print('name: ', name)
                     results[name]['txt_hyp'], results[name]['txt_ref'] = txt_hyp, txt_ref
-
-                    temp_arr = []
 
                     match = re.match(r'^(test|dev)/(.+)$', name)
                     if match:
@@ -346,12 +345,14 @@ def evaluate(args, config, dev_dataloader, model, tokenizer, epoch, beam_size=1,
                     with open(text_file_path, 'w') as text_file:
                         text_file.write(f"txt_hyp: {txt_hyp}\n")
                         text_file.write(f"txt_ref: {txt_ref}\n")
-                        temp_arr.append({
-                            "name": temp_name,
-                            "type": prefix,
-                            "txt_hyp": txt_hyp,
-                            "txt_ref": txt_ref
-                        })
+
+                    # Append the result to results_data
+                    results_data.append({
+                        "name": temp_name,
+                        "type": prefix,
+                        "txt_hyp": txt_hyp,
+                        "txt_ref": txt_ref
+                    })
 
                     # Optionally, play the audio (comment out if not needed)
                     # Audio(hyp_path, autoplay=True)
@@ -364,9 +365,6 @@ def evaluate(args, config, dev_dataloader, model, tokenizer, epoch, beam_size=1,
                     gc.collect()
 
                     print('results_data: ', results_data)
-
-                    for item in temp_arr:
-                        results_data.append(item)
 
             # Write the results to a JSON file
             json_file_path = os.path.join(result_dir, 'result_mska.json')
