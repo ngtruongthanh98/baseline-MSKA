@@ -307,6 +307,8 @@ def evaluate(args, config, dev_dataloader, model, tokenizer, epoch, beam_size=1,
                     transformer_inputs=output['transformer_inputs'],
                     generate_cfg=generate_cfg)
 
+                results = {"dev": [], "test": []}
+
                 for idx, (name, txt_hyp, txt_ref) in enumerate(zip(src_input['name'], generate_output['decoded_sequences'], src_input['text']), start=1):
                     print('name: ', name)
                     results[name]['txt_hyp'], results[name]['txt_ref'] = txt_hyp, txt_ref
@@ -348,9 +350,28 @@ def evaluate(args, config, dev_dataloader, model, tokenizer, epoch, beam_size=1,
 
                     print('txt_ref: ', txt_ref)
 
-                    # Clear variables and call garbage collection
-                    del tts_hyp, tts_ref
-                    gc.collect()
+                    # Add the results to the dictionary
+                    if match:
+                        results[prefix].append({
+                            "name": temp_name,
+                            "txt_hyp": txt_hyp,
+                            "txt_ref": txt_ref
+                        })
+                    else:
+                        results["test"].append({
+                            "name": temp_name,
+                            "txt_hyp": txt_hyp,
+                            "txt_ref": txt_ref
+                        })
+
+                # Clear variables and call garbage collection
+                del tts_hyp, tts_ref
+                gc.collect()
+
+                # Write the results to a JSON file
+                json_file_path = os.path.join(result_dir, 'result_mska.json')
+                with open(json_file_path, 'w') as json_file:
+                    json.dump(results, json_file, indent=4)
 
             metric_logger.update(loss=output['total_loss'].item())
         if do_recognition:
