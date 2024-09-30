@@ -366,10 +366,10 @@ def evaluate(args, config, dev_dataloader, model, tokenizer, epoch, beam_size=1,
 
                     print('results_data: ', results_data)
 
-            # Write the results to a JSON file
-            json_file_path = os.path.join(result_dir, 'result_mska.json')
-            with open(json_file_path, 'w') as json_file:
-                json.dump(results_data, json_file, indent=4)
+                    # Write the results to a JSON file for each loop iteration
+                    json_file_path = os.path.join(result_dir, f'result_mska_{idx}.json')
+                    with open(json_file_path, 'w') as json_file:
+                        json.dump(results_data, json_file, indent=4)
 
             metric_logger.update(loss=output['total_loss'].item())
         if do_recognition:
