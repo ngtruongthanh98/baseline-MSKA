@@ -302,6 +302,8 @@ def evaluate(args, config, dev_dataloader, model, tokenizer, epoch, beam_size=1,
             result_dir = f'../result'
             os.makedirs(result_dir, exist_ok=True)
 
+            last_result = []
+
             if do_translation:
                 generate_output = model.generate_txt(
                     transformer_inputs=output['transformer_inputs'],
@@ -355,9 +357,20 @@ def evaluate(args, config, dev_dataloader, model, tokenizer, epoch, beam_size=1,
                         f'type: {prefix}'
                     )
 
+                    last_result.append(
+                        {
+                            'name': name,
+                            'txt_hyp': txt_hyp,
+                            'txt_ref': txt_ref,
+                            'prefix': prefix,
+                        }
+                    )
+
                     # Clear variables and call garbage collection
                     del tts_hyp, tts_ref
                     gc.collect()
+
+                print('last_result: ', last_result)
 
             metric_logger.update(loss=output['total_loss'].item())
         if do_recognition:
