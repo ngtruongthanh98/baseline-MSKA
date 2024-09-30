@@ -280,8 +280,6 @@ def evaluate(args, config, dev_dataloader, model, tokenizer, epoch, beam_size=1,
     print_freq = 10
     results = defaultdict(dict)
 
-    last_result = []
-
     with torch.no_grad():
         for step, (src_input) in enumerate(metric_logger.log_every(dev_dataloader, print_freq, header)):
             output = model(src_input)
@@ -305,6 +303,8 @@ def evaluate(args, config, dev_dataloader, model, tokenizer, epoch, beam_size=1,
             os.makedirs(result_dir, exist_ok=True)
 
             if do_translation:
+                last_result = []
+
                 generate_output = model.generate_txt(
                     transformer_inputs=output['transformer_inputs'],
                     generate_cfg=generate_cfg)
@@ -366,6 +366,16 @@ def evaluate(args, config, dev_dataloader, model, tokenizer, epoch, beam_size=1,
                         }
                     )
 
+                    print('last_result: ', last_result)
+
+                    os.makedirs('../result/json', exist_ok=True)
+
+                    timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+
+                    # store data to json file
+                    with open(f'../result/json/last_result_{timestamp}.json', 'w') as f:
+                        json.dump(last_result, f, indent=4)
+
                     # Clear variables and call garbage collection
                     del tts_hyp, tts_ref
                     gc.collect()
@@ -408,15 +418,6 @@ def evaluate(args, config, dev_dataloader, model, tokenizer, epoch, beam_size=1,
             metric_logger.update(bleu3=bleu_dict['bleu3'])
             metric_logger.update(bleu4=bleu_dict['bleu4'])
             metric_logger.update(rouge=rouge_score)
-
-
-    print('last_result: ', last_result)
-
-    os.makedirs('../result/json', exist_ok=True)
-
-    # store data to json file
-    with open(f'../result/json/last_result_{epoch}.json', 'w') as f:
-        json.dump(last_result, f, indent=4)
 
 
     if args.run:
