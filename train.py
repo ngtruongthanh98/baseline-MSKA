@@ -18,8 +18,12 @@ import math
 import sys
 from typing import Iterable
 from loguru import logger
-import gc
 import re
+from PIL import Image
+from torchvision import transforms
+from collections import defaultdict
+from gtts import gTTS
+import gc
 
 # *metric
 from metrics import wer_list, bleu, rouge
@@ -94,154 +98,162 @@ def main(args, config):
 
     print(f"Creating dataset:")
     tokenizer = GlossTokenizer_S2G(config['gloss'])
-    train_data = S2T_Dataset(path=config['data']['train_label_path'], tokenizer=tokenizer, config=config, args=args,
-                             phase='train', training_refurbish=True)
-    print(train_data)
-    train_dataloader = DataLoader(train_data,
-                                  batch_size=args.batch_size,
-                                  num_workers=args.num_workers,
-                                  collate_fn=train_data.collate_fn,
-                                  shuffle=True,
-                                  pin_memory=args.pin_mem,
-                                  drop_last=True)
+    # train_data = S2T_Dataset(path=config['data']['train_label_path'], tokenizer=tokenizer, config=config, args=args,
+    #                          phase='train', training_refurbish=True)
+    # print(train_data)
+    # train_dataloader = DataLoader(train_data,
+    #                               batch_size=args.batch_size,
+    #                               num_workers=args.num_workers,
+    #                               collate_fn=train_data.collate_fn,
+    #                               shuffle=True,
+    #                               pin_memory=args.pin_mem,
+    #                               drop_last=True)
 
-    dev_data = S2T_Dataset(path=config['data']['dev_label_path'], tokenizer=tokenizer, config=config, args=args,
-                           phase='val', training_refurbish=True)
-    print(dev_data)
-    dev_dataloader = DataLoader(dev_data,
-                                batch_size=args.batch_size,
-                                num_workers=args.num_workers,
-                                collate_fn=dev_data.collate_fn,
-                                pin_memory=args.pin_mem)
+    # dev_data = S2T_Dataset(path=config['data']['dev_label_path'], tokenizer=tokenizer, config=config, args=args,
+    #                        phase='val', training_refurbish=True)
+    # print(dev_data)
+    # dev_dataloader = DataLoader(dev_data,
+    #                             batch_size=args.batch_size,
+    #                             num_workers=args.num_workers,
+    #                             collate_fn=dev_data.collate_fn,
+    #                             pin_memory=args.pin_mem)
 
-    test_data = S2T_Dataset(path=config['data']['test_label_path'], tokenizer=tokenizer, config=config, args=args,
-                            phase='test', training_refurbish=True)
-    print(test_data)
-    test_dataloader = DataLoader(test_data,
-                                 batch_size=args.batch_size,
-                                 num_workers=args.num_workers,
-                                 collate_fn=test_data.collate_fn,
-                                 pin_memory=args.pin_mem)
+    # test_data = S2T_Dataset(path=config['data']['test_label_path'], tokenizer=tokenizer, config=config, args=args,
+    #                         phase='test', training_refurbish=True)
+    # print(test_data)
+    # test_dataloader = DataLoader(test_data,
+    #                              batch_size=args.batch_size,
+    #                              num_workers=args.num_workers,
+    #                              collate_fn=test_data.collate_fn,
+    #                              pin_memory=args.pin_mem)
 
     print(f"Creating model:")
     model = SignLanguageModel(cfg=config, args=args)
     model.to(device)
     print(model)
 
-    if args.finetune:
-        checkpoint = torch.load(args.finetune, map_location='cpu')
-        ret = model.load_state_dict(checkpoint['model'], strict=False)
-        print('Missing keys: \n', '\n'.join(ret.missing_keys))
-        print('Unexpected keys: \n', '\n'.join(ret.unexpected_keys))
+    # if args.finetune:
+    #     checkpoint = torch.load(args.finetune, map_location='cpu')
+    #     ret = model.load_state_dict(checkpoint['model'], strict=False)
+    #     print('Missing keys: \n', '\n'.join(ret.missing_keys))
+    #     print('Unexpected keys: \n', '\n'.join(ret.unexpected_keys))
 
-    n_parameters = utils.count_parameters_in_MB(model)
-    print(f'number of params: {n_parameters}M')
-    optimizer = build_optimizer(config=config['training']['optimization'], model=model)
-    scheduler, scheduler_type = build_scheduler(config=config['training']['optimization'], optimizer=optimizer)
-    output_dir = Path(config['training']['model_dir'])
-    if args.resume:
-        checkpoint = torch.load(args.resume, map_location='cpu')
-        model.load_state_dict(checkpoint['model'], strict=True)
-        if not args.eval and 'optimizer' in checkpoint and 'scheduler' in checkpoint and 'epoch' in checkpoint:
-            optimizer.load_state_dict(checkpoint['optimizer'])
-            scheduler.load_state_dict(checkpoint['scheduler'])
-        args.start_epoch = checkpoint['epoch'] + 1
+    # n_parameters = utils.count_parameters_in_MB(model)
+    # print(f'number of params: {n_parameters}M')
+    # optimizer = build_optimizer(config=config['training']['optimization'], model=model)
+    # scheduler, scheduler_type = build_scheduler(config=config['training']['optimization'], optimizer=optimizer)
+    # output_dir = Path(config['training']['model_dir'])
+    # if args.resume:
+    #     checkpoint = torch.load(args.resume, map_location='cpu')
+    #     model.load_state_dict(checkpoint['model'], strict=True)
+    #     if not args.eval and 'optimizer' in checkpoint and 'scheduler' in checkpoint and 'epoch' in checkpoint:
+    #         optimizer.load_state_dict(checkpoint['optimizer'])
+    #         scheduler.load_state_dict(checkpoint['scheduler'])
+    #     args.start_epoch = checkpoint['epoch'] + 1
 
-    if args.eval:
-        if not args.resume:
-            logger.warning('Please specify the trained model: --resume /path/to/best_checkpoint.pth')
-        dev_stats = evaluate(args, config, dev_dataloader, model, tokenizer, epoch=0, beam_size=5,
-                              generate_cfg=config['training']['validation']['translation'],
-                              do_translation=config['do_translation'], do_recognition=config['do_recognition'])
-        print(f"Dev loss of the network on the {len(dev_dataloader)} test videos: {dev_stats['loss']:.3f}")
+    # if args.eval:
+    #     if not args.resume:
+    #         logger.warning('Please specify the trained model: --resume /path/to/best_checkpoint.pth')
+    #     dev_stats = evaluate(args, config, dev_dataloader, model, tokenizer, epoch=0, beam_size=5,
+    #                           generate_cfg=config['training']['validation']['translation'],
+    #                           do_translation=config['do_translation'], do_recognition=config['do_recognition'])
+    #     print(f"Dev loss of the network on the {len(dev_dataloader)} test videos: {dev_stats['loss']:.3f}")
 
-        test_stats = evaluate(args, config, test_dataloader, model, tokenizer, epoch=0, beam_size=5,
-                              generate_cfg=config['testing']['translation'],
-                              do_translation=config['do_translation'], do_recognition=config['do_recognition'])
-        print(f"Test loss of the network on the {len(test_dataloader)} test videos: {test_stats['loss']:.3f}")
-        return
+    #     test_stats = evaluate(args, config, test_dataloader, model, tokenizer, epoch=0, beam_size=5,
+    #                           generate_cfg=config['testing']['translation'],
+    #                           do_translation=config['do_translation'], do_recognition=config['do_recognition'])
+    #     print(f"Test loss of the network on the {len(test_dataloader)} test videos: {test_stats['loss']:.3f}")
+    #     return
 
-    print(f"Start training for {args.epochs} epochs")
-    start_time = time.time()
-    min_loss = 200
-    bleu_4 = 0
-    for epoch in range(args.start_epoch, args.epochs):
-        scheduler.step()
-        train_stats = train_one_epoch(args, model, tokenizer, train_dataloader, optimizer, device, epoch)
-        checkpoint_paths = [output_dir / f'checkpoint.pth']
-        for checkpoint_path in checkpoint_paths:
-            utils.save_on_master({
-                'model': model.state_dict(),
-                'optimizer': optimizer.state_dict(),
-                'scheduler': scheduler.state_dict(),
-                'epoch': epoch,
-            }, checkpoint_path)
-        test_stats = evaluate(args, config, dev_dataloader, model, tokenizer, epoch,
-                              beam_size=config['training']['validation']['recognition']['beam_size'],
-                              generate_cfg=config['training']['validation']['translation'],
-                              do_translation=config['do_translation'], do_recognition=config['do_recognition'])
-        if config['task'] == "S2T":
-            if bleu_4 < test_stats["bleu4"]:
-                bleu_4 = test_stats["bleu4"]
-                checkpoint_paths = [output_dir / 'best_checkpoint.pth']
-                for checkpoint_path in checkpoint_paths:
-                    utils.save_on_master({
-                        'model': model.state_dict(),
-                        'optimizer': optimizer.state_dict(),
-                        'scheduler': scheduler.state_dict(),
-                        'epoch': epoch,
-                    }, checkpoint_path)
+    # print(f"Start training for {args.epochs} epochs")
+    # start_time = time.time()
+    # min_loss = 200
+    # bleu_4 = 0
+    # for epoch in range(args.start_epoch, args.epochs):
+    #     scheduler.step()
+    #     train_stats = train_one_epoch(args, model, tokenizer, train_dataloader, optimizer, device, epoch)
+    #     checkpoint_paths = [output_dir / f'checkpoint.pth']
+    #     for checkpoint_path in checkpoint_paths:
+    #         utils.save_on_master({
+    #             'model': model.state_dict(),
+    #             'optimizer': optimizer.state_dict(),
+    #             'scheduler': scheduler.state_dict(),
+    #             'epoch': epoch,
+    #         }, checkpoint_path)
+    #     test_stats = evaluate(args, config, dev_dataloader, model, tokenizer, epoch,
+    #                           beam_size=config['training']['validation']['recognition']['beam_size'],
+    #                           generate_cfg=config['training']['validation']['translation'],
+    #                           do_translation=config['do_translation'], do_recognition=config['do_recognition'])
+    #     if config['task'] == "S2T":
+    #         if bleu_4 < test_stats["bleu4"]:
+    #             bleu_4 = test_stats["bleu4"]
+    #             checkpoint_paths = [output_dir / 'best_checkpoint.pth']
+    #             for checkpoint_path in checkpoint_paths:
+    #                 utils.save_on_master({
+    #                     'model': model.state_dict(),
+    #                     'optimizer': optimizer.state_dict(),
+    #                     'scheduler': scheduler.state_dict(),
+    #                     'epoch': epoch,
+    #                 }, checkpoint_path)
 
-            print(f"* DEV BLEU-4 {test_stats['bleu4']:.3f} Max DEV BLEU-4 {bleu_4}")
-        else:
-            if min_loss > test_stats["wer"]:
-                min_loss = test_stats["wer"]
-                checkpoint_paths = [output_dir / 'best_checkpoint.pth']
-                for checkpoint_path in checkpoint_paths:
-                    utils.save_on_master({
-                        'model': model.state_dict(),
-                        'optimizer': optimizer.state_dict(),
-                        'scheduler': scheduler.state_dict(),
-                        'epoch': epoch,
-                    }, checkpoint_path)
-            print(f"* DEV wer {test_stats['wer']:.3f} Min DEV WER {min_loss}")
-        if args.run:
-            args.run.log(
-                {'epoch': epoch + 1, 'training/train_loss': train_stats['loss'], 'dev/dev_loss': test_stats['loss'],
-                 'dev/min_loss': min_loss})
+    #         print(f"* DEV BLEU-4 {test_stats['bleu4']:.3f} Max DEV BLEU-4 {bleu_4}")
+    #     else:
+    #         if min_loss > test_stats["wer"]:
+    #             min_loss = test_stats["wer"]
+    #             checkpoint_paths = [output_dir / 'best_checkpoint.pth']
+    #             for checkpoint_path in checkpoint_paths:
+    #                 utils.save_on_master({
+    #                     'model': model.state_dict(),
+    #                     'optimizer': optimizer.state_dict(),
+    #                     'scheduler': scheduler.state_dict(),
+    #                     'epoch': epoch,
+    #                 }, checkpoint_path)
+    #         print(f"* DEV wer {test_stats['wer']:.3f} Min DEV WER {min_loss}")
+    #     if args.run:
+    #         args.run.log(
+    #             {'epoch': epoch + 1, 'training/train_loss': train_stats['loss'], 'dev/dev_loss': test_stats['loss'],
+    #              'dev/min_loss': min_loss})
 
-        log_stats = {**{f'train_{k}': v for k, v in train_stats.items()},
-                     **{f'test_{k}': v for k, v in test_stats.items()},
-                     'epoch': epoch,
-                     'n_parameters': n_parameters}
+    #     log_stats = {**{f'train_{k}': v for k, v in train_stats.items()},
+    #                  **{f'test_{k}': v for k, v in test_stats.items()},
+    #                  'epoch': epoch,
+    #                  'n_parameters': n_parameters}
 
-        with (output_dir / "log.txt").open("a") as f:
-            f.write(json.dumps(log_stats) + "\n")
+    #     with (output_dir / "log.txt").open("a") as f:
+    #         f.write(json.dumps(log_stats) + "\n")
 
-        # Last epoch
-    test_on_last_epoch = True
-    if test_on_last_epoch:
-        checkpoint = torch.load(str(output_dir) + '/best_checkpoint.pth', map_location='cpu')
-        model.load_state_dict(checkpoint['model'], strict=True)
-        dev_stats = evaluate(args, config, dev_dataloader, model, tokenizer, epoch=0, beam_size=config['testing']['recognition']['beam_size'],
-                             generate_cfg=config['training']['validation']['translation'],
-                             do_translation=config['do_translation'], do_recognition=config['do_recognition'])
-        print(f"Dev loss of the network on the {len(dev_dataloader)} test videos: {dev_stats['loss']:.3f}")
-        test_stats = evaluate(args, config, test_dataloader, model, tokenizer, epoch=0, beam_size=config['testing']['recognition']['beam_size'],
-                              generate_cfg=config['testing']['translation'],
-                              do_translation=config['do_translation'], do_recognition=config['do_recognition'])
-        print(f"Test loss of the network on the {len(test_dataloader)} test videos: {test_stats['loss']:.3f}")
-        if config['do_recognition']:
-            with (output_dir / "log.txt").open("a") as f:
-                f.write(json.dumps({'Dev WER:': dev_stats['wer'],
-                                    'Test WER:': test_stats['wer']}) + "\n")
-        if config['do_translation']:
-            with (output_dir / "log.txt").open("a") as f:
-                f.write(json.dumps({'Dev Bleu-4:': dev_stats['bleu4'],
-                                    'Test Bleu-4:': test_stats['bleu4']}) + "\n")
-    total_time = time.time() - start_time
-    total_time_str = str(datetime.timedelta(seconds=int(total_time)))
-    print('Training time {}'.format(total_time_str))
+    #     # Last epoch
+    # test_on_last_epoch = True
+    # if test_on_last_epoch:
+    #     checkpoint = torch.load(str(output_dir) + '/best_checkpoint.pth', map_location='cpu')
+    #     model.load_state_dict(checkpoint['model'], strict=True)
+    #     dev_stats = evaluate(args, config, dev_dataloader, model, tokenizer, epoch=0, beam_size=config['testing']['recognition']['beam_size'],
+    #                          generate_cfg=config['training']['validation']['translation'],
+    #                          do_translation=config['do_translation'], do_recognition=config['do_recognition'])
+    #     print(f"Dev loss of the network on the {len(dev_dataloader)} test videos: {dev_stats['loss']:.3f}")
+    #     test_stats = evaluate(args, config, test_dataloader, model, tokenizer, epoch=0, beam_size=config['testing']['recognition']['beam_size'],
+    #                           generate_cfg=config['testing']['translation'],
+    #                           do_translation=config['do_translation'], do_recognition=config['do_recognition'])
+    #     print(f"Test loss of the network on the {len(test_dataloader)} test videos: {test_stats['loss']:.3f}")
+    #     if config['do_recognition']:
+    #         with (output_dir / "log.txt").open("a") as f:
+    #             f.write(json.dumps({'Dev WER:': dev_stats['wer'],
+    #                                 'Test WER:': test_stats['wer']}) + "\n")
+    #     if config['do_translation']:
+    #         with (output_dir / "log.txt").open("a") as f:
+    #             f.write(json.dumps({'Dev Bleu-4:': dev_stats['bleu4'],
+    #                                 'Test Bleu-4:': test_stats['bleu4']}) + "\n")
+    # total_time = time.time() - start_time
+    # total_time_str = str(datetime.timedelta(seconds=int(total_time)))
+    # print('Training time {}'.format(total_time_str))
+
+    folder_path = '../21October_2011_Friday_tagesschau-4104'
+
+    results = evaluate_single_video(args, config, folder_path, model, tokenizer, beam_size=5, generate_cfg=config['testing']['translation'], do_translation=config['do_translation'], do_recognition=config['do_recognition'])
+
+    print(results)
+
+
 
 
 def train_one_epoch(args, model: torch.nn.Module, criterion,
@@ -428,6 +440,130 @@ def evaluate(args, config, dev_dataloader, model, tokenizer, epoch, beam_size=1,
 
     return {k: meter.global_avg for k, meter in metric_logger.meters.items()}
 
+def evaluate_single_video(args, config, folder_path, model, tokenizer, beam_size=1, generate_cfg={}, do_translation=True, do_recognition=True):
+    model.eval()
+    results = defaultdict(dict)
+
+    # Define the image transformation pipeline
+    transform = transforms.Compose([
+        transforms.Resize((config['data']['image_height'], config['data']['image_width'])),
+        transforms.ToTensor(),
+        transforms.Normalize(mean=config['data']['mean'], std=config['data']['std'])
+    ])
+
+    # List all image files in the folder and sort them
+    image_paths = sorted([os.path.join(folder_path, img) for img in os.listdir(folder_path) if img.endswith(('.png', '.jpg', '.jpeg'))])
+
+    # Load and preprocess the images
+    video_frames = [transform(Image.open(image_path).convert('RGB')) for image_path in image_paths]
+    video_frames = torch.stack(video_frames).unsqueeze(0)  # Add batch dimension
+
+    with torch.no_grad():
+        src_input = {'frames': video_frames}
+
+        output = model(src_input)
+        if do_recognition:
+            for k, gls_logits in output.items():
+                if not 'gloss_logits' in k:
+                    continue
+                logits_name = k.replace('gloss_logits', '')
+                ctc_decode_output = model.recognition_network.decode(gloss_logits=gls_logits,
+                                                                     beam_size=beam_size,
+                                                                     input_lengths=output['input_lengths'])
+                batch_pred_gls = tokenizer.convert_ids_to_tokens(ctc_decode_output)
+                for name, gls_hyp, gls_ref in zip(src_input['name'], batch_pred_gls, src_input['gloss']):
+                    results[name][f'{logits_name}gls_hyp'] = \
+                        ' '.join(gls_hyp).upper() if tokenizer.lower_case \
+                            else ' '.join(gls_hyp)
+                    results[name]['gls_ref'] = gls_ref.upper() if tokenizer.lower_case \
+                        else gls_ref
+
+        result_dir = f'../result'
+        os.makedirs(result_dir, exist_ok=True)
+
+        if do_translation:
+            last_result = []
+
+            generate_output = model.generate_txt(
+                transformer_inputs=output['transformer_inputs'],
+                generate_cfg=generate_cfg)
+
+            for idx, (name, txt_hyp, txt_ref) in enumerate(zip(src_input['name'], generate_output['decoded_sequences'], src_input['text']), start=1):
+                print('name: ', name)
+                results[name]['txt_hyp'], results[name]['txt_ref'] = txt_hyp, txt_ref
+
+                match = re.match(r'^(test|dev)/(.+)$', name)
+                if match:
+                    prefix, rest_of_name = match.groups()
+                    temp_name = rest_of_name.replace("/", "-")
+                    sub_dir = os.path.join(result_dir, prefix)
+                else:
+                    temp_name = name.replace("/", "-")
+                    sub_dir = result_dir
+
+                print('txt_hyp: ', txt_hyp)
+
+                # Create directory for the sample inside the result directory
+                sample_dir = os.path.join(sub_dir, f'{temp_name}')
+                os.makedirs(sample_dir, exist_ok=True)
+
+                # Save txt_hyp as an mp3 file
+                tts_hyp = gTTS(text=txt_hyp, lang='de')
+                hyp_path = os.path.join(sample_dir, f'txt_hyp_{temp_name}.mp3')
+                tts_hyp.save(hyp_path)
+
+                # Save txt_ref as an mp3 file
+                ref_path = os.path.join(sample_dir, f'txt_ref_{temp_name}.mp3')
+                tts_ref = gTTS(text=txt_ref, lang='de')
+                tts_ref.save(ref_path)
+
+                # Create a text file to store txt_hyp and txt_ref
+                text_file_path = os.path.join(sample_dir, f'{temp_name}.txt')
+                with open(text_file_path, 'w') as text_file:
+                    text_file.write(f"txt_hyp: {txt_hyp}\n")
+                    text_file.write(f"txt_ref: {txt_ref}\n")
+
+                # Optionally, play the audio (comment out if not needed)
+                # Audio(hyp_path, autoplay=True)
+                # Audio(ref_path, autoplay=True)
+
+                print('txt_ref: ', txt_ref)
+
+                print(
+                    f'Name: {name}' + '\n' +
+                    f'txt_hyp: {txt_hyp}' + '\n' +
+                    f'txt_ref: {txt_ref}' + '\n' +
+                    f'type: {prefix}'
+                )
+
+                last_result.append(
+                    {
+                        'name': name,
+                        'txt_hyp': txt_hyp,
+                        'txt_ref': txt_ref,
+                        'prefix': prefix,
+                    }
+                )
+
+                # Clear variables and call garbage collection
+                del tts_hyp, tts_ref
+                gc.collect()
+
+            print('last_result: ', last_result)
+
+            os.makedirs('../result/json', exist_ok=True)
+
+            timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+
+            # store data to json file
+            with open(f'../result/json/last_result_{timestamp}.json', 'w') as f:
+                json.dump(last_result, f, indent=4)
+
+        # Assuming the loss is calculated in the model's forward pass
+        loss_value = output['total_loss'].item()
+        print(f"Loss: {loss_value}")
+
+    return results
 
 def setup_run(args, config):
     if args.log_all:
@@ -468,3 +604,14 @@ if __name__ == '__main__':
     args.run = setup_run(args, config)
     Path(config['training']['model_dir']).mkdir(parents=True, exist_ok=True)
     main(args, config)
+
+
+
+# # Assuming folder_path is the path to the folder containing the frames of the video
+# folder_path = 'path/to/frames/folder'
+
+# # Call the evaluate_single_video function
+# results = evaluate_single_video(args, config, folder_path, model, tokenizer, beam_size=5, generate_cfg=config['testing']['translation'], do_translation=config['do_translation'], do_recognition=config['do_recognition'])
+
+# # Print the results
+# print(results)
