@@ -544,13 +544,15 @@ def evaluate_one_item(args, config, src_input, model, tokenizer, epoch, beam_siz
         # print type of src_input
         print('type of src_input: ', type(src_input))
 
-        # Check if src_input is a string and convert it to a dictionary
-        if isinstance(src_input, str):
-            try:
-                src_input = ast.literal_eval(str(src_input))
-            except (ValueError, SyntaxError) as e:
-                print(f"Error converting src_input to dict: {e}")
-                return {"loss": float('inf')}  # Return a default value to avoid NoneType errors
+        # # Check if src_input is a string and convert it to a dictionary
+        # if isinstance(src_input, str):
+        #     try:
+        #         src_input = ast.literal_eval(str(src_input))
+        #     except (ValueError, SyntaxError) as e:
+        #         print(f"Error converting src_input to dict: {e}")
+        #         return {"loss": float('inf')}  # Return a default value to avoid NoneType errors
+
+        src_input = torch.tensor(src_input)
 
         print('type of src_input after: ', type(src_input))
 
