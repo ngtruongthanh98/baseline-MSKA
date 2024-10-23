@@ -20,6 +20,7 @@ from typing import Iterable
 from loguru import logger
 import gc
 import re
+import ast
 
 # *metric
 from metrics import wer_list, bleu, rouge
