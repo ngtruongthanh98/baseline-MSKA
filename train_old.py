@@ -284,6 +284,9 @@ def evaluate(args, config, dev_dataloader, model, tokenizer, epoch, beam_size=1,
         for step, (src_input) in enumerate(metric_logger.log_every(dev_dataloader, print_freq, header)):
             print('test src_input: ', src_input)
 
+            # type of src_input
+            print('type of src_input: ', type(src_input))
+
             output = model(src_input)
             if do_recognition:
                 for k, gls_logits in output.items():
