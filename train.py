@@ -285,30 +285,6 @@ def main(args, config):
 #     keypoints_data = torch.load(file_path)
 #     return keypoints_data
 
-# def load_keypoints_data(file_path):
-#     if not os.path.exists(file_path):
-#         print(f'File not found: {file_path}')
-#         return None
-
-#     try:
-#         # Try to load as a PyTorch file
-#         keypoints_data = torch.load(file_path)
-#     except (torch.serialization.pickle.UnpicklingError, AttributeError, EOFError):
-#         try:
-#             # Try to load as a JSON file
-#             with open(file_path, 'r') as f:
-#                 keypoints_data = json.load(f)
-#         except json.JSONDecodeError:
-#             try:
-#                 # Try to load as a plain text file
-#                 with open(file_path, 'r') as f:
-#                     keypoints_data = f.read()
-#             except Exception as e:
-#                 print(f'Error loading file: {e}')
-#                 return None
-
-#     return keypoints_data
-
 def load_keypoints_data(file_path):
     if not os.path.exists(file_path):
         print(f'File not found: {file_path}')
@@ -325,24 +301,14 @@ def load_keypoints_data(file_path):
         except json.JSONDecodeError:
             try:
                 # Try to load as a plain text file
-                keypoints_data = {}
                 with open(file_path, 'r') as f:
-                    for line in f:
-                        line = line.strip()
-                        if ': ' in line:
-                            key, value = line.split(': ', 1)
-                            try:
-                                # Safely evaluate the value to handle complex data structures
-                                keypoints_data[key] = ast.literal_eval(value)
-                            except (ValueError, SyntaxError):
-                                keypoints_data[key] = value
-                        else:
-                            print(f"Skipping invalid line: {line}")
+                    keypoints_data = f.read()
             except Exception as e:
                 print(f'Error loading file: {e}')
                 return None
 
     return keypoints_data
+
 
 def train_one_epoch(args, model: torch.nn.Module, criterion,
                     data_loader: Iterable, optimizer: torch.optim.Optimizer,
