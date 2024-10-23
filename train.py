@@ -163,15 +163,22 @@ def main(args, config):
     if args.eval:
         if not args.resume:
             logger.warning('Please specify the trained model: --resume /path/to/best_checkpoint.pth')
-        dev_stats = evaluate(args, config, dev_dataloader, model, tokenizer, epoch=0, beam_size=5,
-                              generate_cfg=config['training']['validation']['translation'],
-                              do_translation=config['do_translation'], do_recognition=config['do_recognition'])
-        print(f"Dev loss of the network on the {len(dev_dataloader)} test videos: {dev_stats['loss']:.3f}")
+        # dev_stats = evaluate(args, config, dev_dataloader, model, tokenizer, epoch=0, beam_size=5,
+        #                       generate_cfg=config['training']['validation']['translation'],
+        #                       do_translation=config['do_translation'], do_recognition=config['do_recognition'])
+        # print(f"Dev loss of the network on the {len(dev_dataloader)} test videos: {dev_stats['loss']:.3f}")
 
-        test_stats = evaluate(args, config, test_dataloader, model, tokenizer, epoch=0, beam_size=5,
+        # test_stats = evaluate(args, config, test_dataloader, model, tokenizer, epoch=0, beam_size=5,
+        #                       generate_cfg=config['testing']['translation'],
+        #                       do_translation=config['do_translation'], do_recognition=config['do_recognition'])
+        # print(f"Test loss of the network on the {len(test_dataloader)} test videos: {test_stats['loss']:.3f}")
+
+
+        custom_starts = evaluate_one_item(args, config, src_input, model, tokenizer, epoch=0, beam_size=5,
                               generate_cfg=config['testing']['translation'],
                               do_translation=config['do_translation'], do_recognition=config['do_recognition'])
-        print(f"Test loss of the network on the {len(test_dataloader)} test videos: {test_stats['loss']:.3f}")
+        print(f"Test loss of the network on the {len(test_dataloader)} test videos: {custom_starts['loss']:.3f}")
+
         return
 
     print(f"Start training for {args.epochs} epochs")
@@ -189,10 +196,16 @@ def main(args, config):
                 'scheduler': scheduler.state_dict(),
                 'epoch': epoch,
             }, checkpoint_path)
-        test_stats = evaluate(args, config, dev_dataloader, model, tokenizer, epoch,
+        # test_stats = evaluate(args, config, dev_dataloader, model, tokenizer, epoch,
+        #                       beam_size=config['training']['validation']['recognition']['beam_size'],
+        #                       generate_cfg=config['training']['validation']['translation'],
+        #                       do_translation=config['do_translation'], do_recognition=config['do_recognition'])
+
+        custom_starts = evaluate_one_item(args, config, src_input, model, tokenizer, epoch,
                               beam_size=config['training']['validation']['recognition']['beam_size'],
                               generate_cfg=config['training']['validation']['translation'],
                               do_translation=config['do_translation'], do_recognition=config['do_recognition'])
+
         if config['task'] == "S2T":
             if bleu_4 < test_stats["bleu4"]:
                 bleu_4 = test_stats["bleu4"]
@@ -236,14 +249,21 @@ def main(args, config):
     if test_on_last_epoch:
         checkpoint = torch.load(str(output_dir) + '/best_checkpoint.pth', map_location='cpu')
         model.load_state_dict(checkpoint['model'], strict=True)
-        dev_stats = evaluate(args, config, dev_dataloader, model, tokenizer, epoch=0, beam_size=config['testing']['recognition']['beam_size'],
-                             generate_cfg=config['training']['validation']['translation'],
-                             do_translation=config['do_translation'], do_recognition=config['do_recognition'])
-        print(f"Dev loss of the network on the {len(dev_dataloader)} test videos: {dev_stats['loss']:.3f}")
-        test_stats = evaluate(args, config, test_dataloader, model, tokenizer, epoch=0, beam_size=config['testing']['recognition']['beam_size'],
+        # dev_stats = evaluate(args, config, dev_dataloader, model, tokenizer, epoch=0, beam_size=config['testing']['recognition']['beam_size'],
+        #                      generate_cfg=config['training']['validation']['translation'],
+        #                      do_translation=config['do_translation'], do_recognition=config['do_recognition'])
+        # print(f"Dev loss of the network on the {len(dev_dataloader)} test videos: {dev_stats['loss']:.3f}")
+
+        # test_stats = evaluate(args, config, test_dataloader, model, tokenizer, epoch=0, beam_size=config['testing']['recognition']['beam_size'],
+        #                       generate_cfg=config['testing']['translation'],
+        #                       do_translation=config['do_translation'], do_recognition=config['do_recognition'])
+        # print(f"Test loss of the network on the {len(test_dataloader)} test videos: {test_stats['loss']:.3f}")
+
+        custom_starts = evaluate_one_item(args, config, src_input, model, tokenizer, epoch=0, beam_size=config['testing']['recognition']['beam_size'],
                               generate_cfg=config['testing']['translation'],
                               do_translation=config['do_translation'], do_recognition=config['do_recognition'])
-        print(f"Test loss of the network on the {len(test_dataloader)} test videos: {test_stats['loss']:.3f}")
+        print(f"Test loss of the network on the {len(test_dataloader)} custom videos: {custom_starts['loss']:.3f}")
+
         if config['do_recognition']:
             with (output_dir / "log.txt").open("a") as f:
                 f.write(json.dumps({'Dev WER:': dev_stats['wer'],
@@ -256,13 +276,38 @@ def main(args, config):
     total_time_str = str(datetime.timedelta(seconds=int(total_time)))
     print('Training time {}'.format(total_time_str))
 
+# def load_keypoints_data(file_path):
+#     if not os.path.exists(file_path):
+#         print(f'File not found: {file_path}')
+#         return None
+
+#     keypoints_data = torch.load(file_path)
+#     return keypoints_data
+
 def load_keypoints_data(file_path):
     if not os.path.exists(file_path):
         print(f'File not found: {file_path}')
         return None
 
-    keypoints_data = torch.load(file_path)
+    try:
+        # Try to load as a PyTorch file
+        keypoints_data = torch.load(file_path)
+    except (torch.serialization.pickle.UnpicklingError, AttributeError, EOFError):
+        try:
+            # Try to load as a JSON file
+            with open(file_path, 'r') as f:
+                keypoints_data = json.load(f)
+        except json.JSONDecodeError:
+            try:
+                # Try to load as a plain text file
+                with open(file_path, 'r') as f:
+                    keypoints_data = f.read()
+            except Exception as e:
+                print(f'Error loading file: {e}')
+                return None
+
     return keypoints_data
+
 
 def train_one_epoch(args, model: torch.nn.Module, criterion,
                     data_loader: Iterable, optimizer: torch.optim.Optimizer,
