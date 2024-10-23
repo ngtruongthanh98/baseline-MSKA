@@ -312,8 +312,12 @@ def load_keypoints_data(file_path):
     src_input = {}
     with open(file_path, 'r') as f:
         for line in f:
-            key, value = line.strip().split(': ', 1)
-            src_input[key] = value
+            line = line.strip()
+            if ': ' in line:
+                key, value = line.split(': ', 1)
+                src_input[key] = value
+            else:
+                print(f"Skipping invalid line: {line}")
     return src_input
 
 def train_one_epoch(args, model: torch.nn.Module, criterion,
