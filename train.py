@@ -541,6 +541,13 @@ def evaluate_one_item(args, config, src_input, model, tokenizer, epoch, beam_siz
 
     with torch.no_grad():
         print('test src_input: ', src_input)
+        # print type of src_input
+        print('type of src_input: ', type(src_input))
+
+        # convert string to dictionary
+        src_input = ast.literal_eval(src_input)
+
+        print('type of src_input after: ', type(src_input))
 
         output = model(src_input)
 
