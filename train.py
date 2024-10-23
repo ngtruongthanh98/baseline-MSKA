@@ -327,17 +327,13 @@ def load_keypoints_data(file_path):
                 # Try to load as a plain text file
                 keypoints_data = {}
                 with open(file_path, 'r') as f:
-                    for line in f:
-                        line = line.strip()
-                        if ': ' in line:
-                            key, value = line.split(': ', 1)
-                            try:
-                                # Safely evaluate the value to handle complex data structures
-                                keypoints_data[key] = ast.literal_eval(value)
-                            except (ValueError, SyntaxError):
-                                keypoints_data[key] = value
-                        else:
-                            print(f"Skipping invalid line: {line}")
+                    content = f.read()
+                    try:
+                        # Safely evaluate the entire content to handle complex data structures
+                        keypoints_data = ast.literal_eval(content)
+                    except (ValueError, SyntaxError):
+                        print(f"Error evaluating content: {content}")
+                        return None
             except Exception as e:
                 print(f'Error loading file: {e}')
                 return None
