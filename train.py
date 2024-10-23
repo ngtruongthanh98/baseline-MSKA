@@ -308,7 +308,6 @@ def load_keypoints_data(file_path):
 
     return keypoints_data
 
-
 def train_one_epoch(args, model: torch.nn.Module, criterion,
                     data_loader: Iterable, optimizer: torch.optim.Optimizer,
                     device: torch.device, epoch: int):
@@ -500,8 +499,7 @@ def evaluate(args, config, dev_dataloader, model, tokenizer, epoch, beam_size=1,
 
     return {k: meter.global_avg for k, meter in metric_logger.meters.items()}
 
-def evaluate_one_item(args, config, src_input, model, tokenizer, epoch, beam_size=1, generate_cfg={}, do_translation=True,
-             do_recognition=True):
+def evaluate_one_item(args, config, src_input, model, tokenizer, epoch, beam_size=1, generate_cfg={}, do_translation=True, do_recognition=True):
     model.eval()
     metric_logger = utils.MetricLogger(delimiter="  ")
     header = 'Test:'
@@ -518,8 +516,8 @@ def evaluate_one_item(args, config, src_input, model, tokenizer, epoch, beam_siz
                     continue
                 logits_name = k.replace('gloss_logits', '')
                 ctc_decode_output = model.recognition_network.decode(gloss_logits=gls_logits,
-                                                                        beam_size=beam_size,
-                                                                        input_lengths=output['input_lengths'])
+                                                                     beam_size=beam_size,
+                                                                     input_lengths=output['input_lengths'])
                 batch_pred_gls = tokenizer.convert_ids_to_tokens(ctc_decode_output)
                 for name, gls_hyp, gls_ref in zip(src_input['name'], batch_pred_gls, src_input['gloss']):
                     results[name][f'{logits_name}gls_hyp'] = \
@@ -570,7 +568,8 @@ def evaluate_one_item(args, config, src_input, model, tokenizer, epoch, beam_siz
                 # save src_input as a txt file
                 src_input_path = os.path.join(sample_dir, f'src_input.txt')
                 with open(src_input_path, 'w') as src_input_file:
-                    src_input_file.write(f"{src_input}")
+                    for key, value in src_input.items():
+                        src_input_file.write(f"{key}: {value}\n")
 
                 # Create a text file to store txt_hyp and txt_ref
                 text_file_path = os.path.join(sample_dir, f'{temp_name}.txt')
@@ -616,7 +615,6 @@ def evaluate_one_item(args, config, src_input, model, tokenizer, epoch, beam_siz
 
         metric_logger.update(loss=output['total_loss'].item())
 
-
         if do_recognition:
             evaluation_results = {}
             evaluation_results['wer'] = 200
@@ -654,7 +652,6 @@ def evaluate_one_item(args, config, src_input, model, tokenizer, epoch, beam_siz
             metric_logger.update(bleu3=bleu_dict['bleu3'])
             metric_logger.update(bleu4=bleu_dict['bleu4'])
             metric_logger.update(rouge=rouge_score)
-
 
     if args.run:
         args.run.log(
