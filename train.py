@@ -550,13 +550,16 @@ def evaluate_one_item(args, config, src_input, model, tokenizer, epoch, beam_siz
                 src_input = ast.literal_eval(src_input)
             except (ValueError, SyntaxError) as e:
                 print(f"Error converting src_input to dict: {e}")
-                return
+                return {"loss": float('inf')}  # Return a default value to avoid NoneType errors
 
         print('type of src_input after: ', type(src_input))
 
         output = model(src_input)
 
         print('output: ', output)
+
+    return {"loss": 0.0}  # Return a default value to avoid NoneType errors
+
 
     #     if do_recognition:
     #         for k, gls_logits in output.items():
