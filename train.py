@@ -552,7 +552,7 @@ def evaluate_one_item(args, config, src_input, model, tokenizer, epoch, beam_siz
         #         print(f"Error converting src_input to dict: {e}")
         #         return {"loss": float('inf')}  # Return a default value to avoid NoneType errors
 
-        src_input = json.loads(src_input)
+        src_input = eval(src_input)
         # src_input = torch.tensor(src_input)
 
         print('type of src_input after: ', type(src_input))
