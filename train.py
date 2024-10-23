@@ -547,10 +547,12 @@ def evaluate_one_item(args, config, src_input, model, tokenizer, epoch, beam_siz
         # Check if src_input is a string and convert it to a dictionary
         if isinstance(src_input, str):
             try:
+                # Replace ellipses with None
+                src_input = src_input.replace('...', 'None')
                 # Define the context for eval to include the tensor function
-                context = {'tensor': torch.tensor}
+                context = {'tensor': torch.tensor, 'None': None}
                 src_input = eval(src_input, context)
-            except (ValueError, SyntaxError, NameError) as e:
+            except (ValueError, SyntaxError, NameError, RuntimeError) as e:
                 print(f"Error converting src_input to dict: {e}")
                 return {"loss": float('inf')}  # Return a default value to avoid NoneType errors
 
