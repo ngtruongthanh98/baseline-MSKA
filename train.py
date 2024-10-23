@@ -308,7 +308,7 @@ def main(args, config):
 
 #     return keypoints_data
 
-def load_src_input(file_path):
+def load_keypoints_data(file_path):
     src_input = {}
     with open(file_path, 'r') as f:
         for line in f:
