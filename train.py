@@ -284,29 +284,37 @@ def main(args, config):
 #     keypoints_data = torch.load(file_path)
 #     return keypoints_data
 
-def load_keypoints_data(file_path):
-    if not os.path.exists(file_path):
-        print(f'File not found: {file_path}')
-        return None
+# def load_keypoints_data(file_path):
+#     if not os.path.exists(file_path):
+#         print(f'File not found: {file_path}')
+#         return None
 
-    try:
-        # Try to load as a PyTorch file
-        keypoints_data = torch.load(file_path)
-    except (torch.serialization.pickle.UnpicklingError, AttributeError, EOFError):
-        try:
-            # Try to load as a JSON file
-            with open(file_path, 'r') as f:
-                keypoints_data = json.load(f)
-        except json.JSONDecodeError:
-            try:
-                # Try to load as a plain text file
-                with open(file_path, 'r') as f:
-                    keypoints_data = f.read()
-            except Exception as e:
-                print(f'Error loading file: {e}')
-                return None
+#     try:
+#         # Try to load as a PyTorch file
+#         keypoints_data = torch.load(file_path)
+#     except (torch.serialization.pickle.UnpicklingError, AttributeError, EOFError):
+#         try:
+#             # Try to load as a JSON file
+#             with open(file_path, 'r') as f:
+#                 keypoints_data = json.load(f)
+#         except json.JSONDecodeError:
+#             try:
+#                 # Try to load as a plain text file
+#                 with open(file_path, 'r') as f:
+#                     keypoints_data = f.read()
+#             except Exception as e:
+#                 print(f'Error loading file: {e}')
+#                 return None
 
-    return keypoints_data
+#     return keypoints_data
+
+def load_src_input(file_path):
+    src_input = {}
+    with open(file_path, 'r') as f:
+        for line in f:
+            key, value = line.strip().split(': ', 1)
+            src_input[key] = value
+    return src_input
 
 def train_one_epoch(args, model: torch.nn.Module, criterion,
                     data_loader: Iterable, optimizer: torch.optim.Optimizer,
