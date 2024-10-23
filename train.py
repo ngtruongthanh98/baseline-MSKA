@@ -315,7 +315,11 @@ def load_keypoints_data(file_path):
             line = line.strip()
             if ': ' in line:
                 key, value = line.split(': ', 1)
-                src_input[key] = value
+                try:
+                    # Safely evaluate the value to handle complex data structures
+                    src_input[key] = ast.literal_eval(value)
+                except (ValueError, SyntaxError):
+                    src_input[key] = value
             else:
                 print(f"Skipping invalid line: {line}")
     return src_input
