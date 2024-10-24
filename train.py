@@ -22,6 +22,7 @@ import gc
 import re
 import ast
 import yaml
+import h5py
 
 # *metric
 from metrics import wer_list, bleu, rouge
@@ -127,7 +128,7 @@ def main(args, config):
 
     # keypoints_data get from the above file
 
-    file_path = '../17February_2011_Thursday_heute-387/src_input.json'
+    file_path = '../17February_2011_Thursday_heute-387/src_input.h5'
     src_input = load_keypoints_data(file_path)
 
     if src_input is not None:
@@ -308,14 +309,15 @@ def load_keypoints_data(file_path):
         return None
 
     try:
-        # Try to load as a JSON file
-        with open(file_path, 'r') as f:
-            keypoints_data = json.load(f)
-    except json.JSONDecodeError as e:
-        print(f'Error loading JSON file: {e}')
+        # Try to load as an HDF5 file
+        with h5py.File(file_path, 'r') as f:
+            keypoints_data = {key: f[key][()] for key in f.keys()}
+    except Exception as e:
+        print(f'Error loading HDF5 file: {e}')
         return None
 
     return keypoints_data
+
 
 
 def train_one_epoch(args, model: torch.nn.Module, criterion,
@@ -414,10 +416,16 @@ def evaluate(args, config, dev_dataloader, model, tokenizer, epoch, beam_size=1,
                     tts_ref = gTTS(text=txt_ref, lang='de')
                     tts_ref.save(ref_path)
 
-                    # save src_input as a json file because src_input is a dictionary
-                    src_input_path = os.path.join(sample_dir, f'src_input.json')
-                    with open(src_input_path, 'w') as src_input_file:
-                        json.dump(src_input, src_input_file, indent=4)
+                    # save src_input as a HDF5 file
+                    src_input_path = os.path.join(sample_dir, 'src_input.h5')
+                    try:
+                        with h5py.File(src_input_path, 'w') as src_input_file:
+                            for key, value in src_input.items():
+                                src_input_file.create_dataset(key, data=value)
+                        print(f'Successfully saved src_input to {src_input_path}')
+                    except Exception as e:
+                        print(f'Error saving src_input to {src_input_path}: {e}')
+
 
                     # Create a text file to store txt_hyp and txt_ref
                     text_file_path = os.path.join(sample_dir, f'{temp_name}.txt')
