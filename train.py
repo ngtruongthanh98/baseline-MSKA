@@ -127,7 +127,7 @@ def main(args, config):
 
     # keypoints_data get from the above file
 
-    file_path = '../17February_2011_Thursday_heute-387/src_input.yaml'
+    file_path = '../17February_2011_Thursday_heute-387/src_input.json'
     src_input = load_keypoints_data(file_path)
 
     if src_input is not None:
@@ -302,32 +302,17 @@ def main(args, config):
 #     return keypoints_data
 
 
-def torch_constructor(loader, node):
-    """Custom constructor for PyTorch objects in YAML."""
-    value = loader.construct_mapping(node, deep=True)
-    return torch._utils._rebuild_tensor_v2(
-        torch.storage._load_from_bytes(value['storage']),
-        value['storage_offset'],
-        value['size'],
-        value['stride'],
-        value['requires_grad'],
-        value['backward_hooks']
-    )
-
 def load_keypoints_data(file_path):
     if not os.path.exists(file_path):
         print(f'File not found: {file_path}')
         return None
 
     try:
-        # Register the custom constructor for PyTorch objects
-        yaml.add_constructor('tag:yaml.org,2002:python/object/apply:torch._utils._rebuild_tensor_v2', torch_constructor)
-
-        # Try to load as a YAML file
+        # Try to load as a JSON file
         with open(file_path, 'r') as f:
-            keypoints_data = yaml.safe_load(f)
-    except yaml.YAMLError as e:
-        print(f'Error loading YAML file: {e}')
+            keypoints_data = json.load(f)
+    except json.JSONDecodeError as e:
+        print(f'Error loading JSON file: {e}')
         return None
 
     return keypoints_data
