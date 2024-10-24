@@ -128,7 +128,7 @@ def main(args, config):
 
     # keypoints_data get from the above file
 
-    file_path = '../17February_2011_Thursday_heute-387/src_input.h5'
+    file_path = '../17February_2011_Thursday_heute-387/src_input.pkl'
     src_input = load_keypoints_data(file_path)
 
     if src_input is not None:
@@ -309,11 +309,11 @@ def load_keypoints_data(file_path):
         return None
 
     try:
-        # Try to load as an HDF5 file
-        with h5py.File(file_path, 'r') as f:
-            keypoints_data = {key: f[key][()] for key in f.keys()}
+        # Try to load as a pickle file
+        with open(file_path, 'rb') as f:
+            keypoints_data = pickle.load(f)
     except Exception as e:
-        print(f'Error loading HDF5 file: {e}')
+        print(f'Error loading pickle file: {e}')
         return None
 
     return keypoints_data
@@ -416,12 +416,11 @@ def evaluate(args, config, dev_dataloader, model, tokenizer, epoch, beam_size=1,
                     tts_ref = gTTS(text=txt_ref, lang='de')
                     tts_ref.save(ref_path)
 
-                    # save src_input as a HDF5 file
-                    src_input_path = os.path.join(sample_dir, 'src_input.h5')
+                    # save src_input as a pickle file
+                    src_input_path = os.path.join(sample_dir, 'src_input.pkl')
                     try:
-                        with h5py.File(src_input_path, 'w') as src_input_file:
-                            for key, value in src_input.items():
-                                src_input_file.create_dataset(key, data=value)
+                        with open(src_input_path, 'wb') as src_input_file:
+                            pickle.dump(src_input, src_input_file)
                         print(f'Successfully saved src_input to {src_input_path}')
                     except Exception as e:
                         print(f'Error saving src_input to {src_input_path}: {e}')
