@@ -21,6 +21,7 @@ from loguru import logger
 import gc
 import re
 import ast
+import yaml
 
 # *metric
 from metrics import wer_list, bleu, rouge
@@ -281,8 +282,25 @@ def main(args, config):
 #         print(f'File not found: {file_path}')
 #         return None
 
-#     keypoints_data = torch.load(file_path)
+#     try:
+#         # Try to load as a PyTorch file
+#         keypoints_data = torch.load(file_path)
+#     except (torch.serialization.pickle.UnpicklingError, AttributeError, EOFError):
+#         try:
+#             # Try to load as a JSON file
+#             with open(file_path, 'r') as f:
+#                 keypoints_data = json.load(f)
+#         except json.JSONDecodeError:
+#             try:
+#                 # Try to load as a plain text file
+#                 with open(file_path, 'r') as f:
+#                     keypoints_data = f.read()
+#             except Exception as e:
+#                 print(f'Error loading file: {e}')
+#                 return None
+
 #     return keypoints_data
+
 
 def load_keypoints_data(file_path):
     if not os.path.exists(file_path):
@@ -299,45 +317,19 @@ def load_keypoints_data(file_path):
                 keypoints_data = json.load(f)
         except json.JSONDecodeError:
             try:
-                # Try to load as a plain text file
+                # Try to load as a YAML file
                 with open(file_path, 'r') as f:
-                    keypoints_data = f.read()
-            except Exception as e:
-                print(f'Error loading file: {e}')
-                return None
+                    keypoints_data = yaml.safe_load(f)
+            except yaml.YAMLError:
+                try:
+                    # Try to load as a plain text file
+                    with open(file_path, 'r') as f:
+                        keypoints_data = f.read()
+                except Exception as e:
+                    print(f'Error loading file: {e}')
+                    return None
 
     return keypoints_data
-
-# def load_keypoints_data(file_path):
-#     if not os.path.exists(file_path):
-#         print(f'File not found: {file_path}')
-#         return None
-
-#     try:
-#         # Try to load as a PyTorch file
-#         keypoints_data = torch.load(file_path)
-#     except (torch.serialization.pickle.UnpicklingError, AttributeError, EOFError):
-#         try:
-#             # Try to load as a JSON file
-#             with open(file_path, 'r') as f:
-#                 keypoints_data = json.load(f)
-#         except json.JSONDecodeError:
-#             try:
-#                 # Try to load as a plain text file
-#                 keypoints_data = {}
-#                 with open(file_path, 'r') as f:
-#                     content = f.read()
-#                     try:
-#                         # Safely evaluate the entire content to handle complex data structures
-#                         keypoints_data = ast.literal_eval(content)
-#                     except (ValueError, SyntaxError):
-#                         print(f"Error evaluating content: {content}")
-#                         return None
-#             except Exception as e:
-#                 print(f'Error loading file: {e}')
-#                 return None
-
-#     return keypoints_data
 
 
 def train_one_epoch(args, model: torch.nn.Module, criterion,
