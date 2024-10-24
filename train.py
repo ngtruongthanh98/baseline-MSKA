@@ -308,26 +308,12 @@ def load_keypoints_data(file_path):
         return None
 
     try:
-        # Try to load as a PyTorch file
-        keypoints_data = torch.load(file_path)
-    except (torch.serialization.pickle.UnpicklingError, AttributeError, EOFError):
-        try:
-            # Try to load as a JSON file
-            with open(file_path, 'r') as f:
-                keypoints_data = json.load(f)
-        except json.JSONDecodeError:
-            try:
-                # Try to load as a YAML file
-                with open(file_path, 'r') as f:
-                    keypoints_data = yaml.safe_load(f)
-            except yaml.YAMLError:
-                try:
-                    # Try to load as a plain text file
-                    with open(file_path, 'r') as f:
-                        keypoints_data = f.read()
-                except Exception as e:
-                    print(f'Error loading file: {e}')
-                    return None
+        # Try to load as a YAML file
+        with open(file_path, 'r') as f:
+            keypoints_data = yaml.safe_load(f)
+    except yaml.YAMLError as e:
+        print(f'Error loading YAML file: {e}')
+        return None
 
     return keypoints_data
 
