@@ -302,12 +302,19 @@ def main(args, config):
 #     return keypoints_data
 
 
+def torch_constructor(loader, node):
+    """Custom constructor for PyTorch objects in YAML."""
+    return torch.load(node.value)
+
 def load_keypoints_data(file_path):
     if not os.path.exists(file_path):
         print(f'File not found: {file_path}')
         return None
 
     try:
+        # Register the custom constructor for PyTorch objects
+        yaml.add_constructor('tag:yaml.org,2002:python/object/apply:torch._utils._rebuild_tensor_v2', torch_constructor)
+
         # Try to load as a YAML file
         with open(file_path, 'r') as f:
             keypoints_data = yaml.safe_load(f)
