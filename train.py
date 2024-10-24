@@ -22,7 +22,7 @@ import gc
 import re
 import ast
 import yaml
-import h5py
+import pickle
 
 # *metric
 from metrics import wer_list, bleu, rouge
