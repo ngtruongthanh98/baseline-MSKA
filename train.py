@@ -127,7 +127,7 @@ def main(args, config):
 
     # keypoints_data get from the above file
 
-    file_path = '../17February_2011_Thursday_heute-387/src_input.txt'
+    file_path = '../17February_2011_Thursday_heute-387/src_input.yaml'
     src_input = load_keypoints_data(file_path)
 
     if src_input is not None:
