@@ -304,7 +304,15 @@ def main(args, config):
 
 def torch_constructor(loader, node):
     """Custom constructor for PyTorch objects in YAML."""
-    return torch.load(node.value)
+    value = loader.construct_mapping(node, deep=True)
+    return torch._utils._rebuild_tensor_v2(
+        torch.storage._load_from_bytes(value['storage']),
+        value['storage_offset'],
+        value['size'],
+        value['stride'],
+        value['requires_grad'],
+        value['backward_hooks']
+    )
 
 def load_keypoints_data(file_path):
     if not os.path.exists(file_path):
