@@ -429,15 +429,10 @@ def evaluate(args, config, dev_dataloader, model, tokenizer, epoch, beam_size=1,
                     tts_ref = gTTS(text=txt_ref, lang='de')
                     tts_ref.save(ref_path)
 
-                    # # save src_input as a txt file
-                    # src_input_path = os.path.join(sample_dir, f'src_input.txt')
-                    # with open(src_input_path, 'w') as src_input_file:
-                    #     src_input_file.write(f"{src_input}")
-
-                    # save src_input as a yaml file
-                    src_input_path = os.path.join(sample_dir, f'src_input.yaml')
+                    # save src_input as a json file because src_input is a dictionary
+                    src_input_path = os.path.join(sample_dir, f'src_input.json')
                     with open(src_input_path, 'w') as src_input_file:
-                        yaml.dump(src_input, src_input_file)
+                        json.dump(src_input, src_input_file, indent=4)
 
                     # Create a text file to store txt_hyp and txt_ref
                     text_file_path = os.path.join(sample_dir, f'{temp_name}.txt')
