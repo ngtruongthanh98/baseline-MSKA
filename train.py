@@ -599,10 +599,6 @@ def evaluate_one_item(args, config, src_input, model, tokenizer, epoch, beam_siz
                         'prefix': prefix,
                     }
 
-                # Clear variables and call garbage collection
-                del tts_hyp, tts_ref
-                gc.collect()
-
             print('last_result: ', last_result)
 
             os.makedirs('../result/json', exist_ok=True)
