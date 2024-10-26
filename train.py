@@ -130,7 +130,7 @@ def main(args, config):
                                  pin_memory=args.pin_mem)
 
     # file_path = '../17February_2011_Thursday_heute-387/src_input.pkl'
-    src_input = load_keypoints_data(arg.input_keypoints_path)
+    src_input = load_keypoints_data(args.input_keypoints_path)
 
     if src_input is not None:
         # Process the keypoints_data
