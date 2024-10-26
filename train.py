@@ -586,7 +586,10 @@ def evaluate_one_item(args, config, src_input, model, tokenizer, epoch, beam_siz
                         }
                     )
 
-                    with open('../result/json/predicted_result.json', 'w') as f:
+                    os.makedirs('../result', exist_ok=True)
+
+
+                    with open('../result/predicted_result.json', 'w') as f:
                         json.dump(last_result, f, indent=4)
                     return {
                         'name': name,
@@ -597,11 +600,11 @@ def evaluate_one_item(args, config, src_input, model, tokenizer, epoch, beam_siz
 
             print('last_result: ', last_result)
 
-            os.makedirs('../result/json', exist_ok=True)
+            # os.makedirs('../result/json', exist_ok=True)
 
-            # Store data to json file
-            with open('../result/json/predicted_result.json', 'w') as f:
-                json.dump(last_result, f, indent=4)
+            # # Store data to json file
+            # with open('../result/json/predicted_result.json', 'w') as f:
+            #     json.dump(last_result, f, indent=4)
 
         metric_logger.update(loss=output['total_loss'].item())
 
