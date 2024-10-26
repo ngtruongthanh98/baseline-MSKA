@@ -522,6 +522,8 @@ def evaluate_one_item(args, config, src_input, model, tokenizer, epoch, beam_siz
 
     video_name = os.path.basename(args.input_keypoints_path).split('.')[0]
 
+    print('video_name: ', video_name)
+
     with torch.no_grad():
         output = model(src_input)
 
@@ -555,20 +557,14 @@ def evaluate_one_item(args, config, src_input, model, tokenizer, epoch, beam_siz
                 print('name: ', name)
                 results[name]['txt_hyp'], results[name]['txt_ref'] = txt_hyp, txt_ref
 
-                match = re.match(r'^(test|dev)/(.+)$', name)
-                if match:
-                    prefix, rest_of_name = match.groups()
-                    temp_name = rest_of_name.replace("/", "-")
-                    sub_dir = os.path.join(result_dir, prefix)
-                else:
-                    temp_name = name.replace("/", "-")
-                    sub_dir = result_dir
-
-                print('txt_hyp: ', txt_hyp)
-
-                # Create directory for the sample inside the result directory
-                sample_dir = os.path.join(sub_dir, f'{temp_name}')
-                os.makedirs(sample_dir, exist_ok=True)
+                # match = re.match(r'^(test|dev)/(.+)$', name)
+                # if match:
+                #     prefix, rest_of_name = match.groups()
+                #     temp_name = rest_of_name.replace("/", "-")
+                #     sub_dir = os.path.join(result_dir, prefix)
+                # else:
+                #     temp_name = name.replace("/", "-")
+                #     sub_dir = result_dir
 
 
                 print(
