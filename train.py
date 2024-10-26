@@ -75,7 +75,7 @@ def get_args_parser():
     parser.add_argument("--project", type=str, default='VLP',
                         help="wandb project",
                         )
-    parser.add_argument("--input-keypoints-path", default='',
+    parser.add_argument("--input_keypoints_path", default='',
                         help="path to the input keypoints file",
                         )
 
