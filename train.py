@@ -180,8 +180,6 @@ def main(args, config):
         custom_starts = evaluate_one_item(args, config, src_input, model, tokenizer, epoch=0, beam_size=5,
                               generate_cfg=config['testing']['translation'],
                               do_translation=config['do_translation'], do_recognition=config['do_recognition'])
-        print(f"Test loss of the network on the {len(src_input)} test videos: {custom_starts['loss']:.3f}")
-
 
         return
 
