@@ -75,6 +75,9 @@ def get_args_parser():
     parser.add_argument("--project", type=str, default='VLP',
                         help="wandb project",
                         )
+    passet.add_argument("--input-keypoints-path", type=str, default='../17February_2011_Thursday_heute-387/src_input.pkl',
+                        help="path to the input keypoints file",
+                        )
 
     return parser
 
@@ -126,10 +129,8 @@ def main(args, config):
                                  collate_fn=test_data.collate_fn,
                                  pin_memory=args.pin_mem)
 
-    # keypoints_data get from the above file
-
-    file_path = '../17February_2011_Thursday_heute-387/src_input.pkl'
-    src_input = load_keypoints_data(file_path)
+    # file_path = '../17February_2011_Thursday_heute-387/src_input.pkl'
+    src_input = load_keypoints_data(arg.input_keypoints_path)
 
     if src_input is not None:
         # Process the keypoints_data
@@ -519,11 +520,9 @@ def evaluate_one_item(args, config, src_input, model, tokenizer, epoch, beam_siz
     print_freq = 10
     results = defaultdict(dict)
 
-    with torch.no_grad():
-        print('test src_input: ', src_input)
-        # print type of src_input
-        print('type of src_input: ', type(src_input))
+    video_name = os.path.basename(args.input_keypoints_path).split('.')[0]
 
+    with torch.no_grad():
         output = model(src_input)
 
         if do_recognition:
@@ -532,8 +531,8 @@ def evaluate_one_item(args, config, src_input, model, tokenizer, epoch, beam_siz
                     continue
                 logits_name = k.replace('gloss_logits', '')
                 ctc_decode_output = model.recognition_network.decode(gloss_logits=gls_logits,
-                                                                     beam_size=beam_size,
-                                                                     input_lengths=output['input_lengths'])
+                                                                    beam_size=beam_size,
+                                                                    input_lengths=output['input_lengths'])
                 batch_pred_gls = tokenizer.convert_ids_to_tokens(ctc_decode_output)
                 for name, gls_hyp, gls_ref in zip(src_input['name'], batch_pred_gls, src_input['gloss']):
                     results[name][f'{logits_name}gls_hyp'] = \
@@ -571,33 +570,6 @@ def evaluate_one_item(args, config, src_input, model, tokenizer, epoch, beam_siz
                 sample_dir = os.path.join(sub_dir, f'{temp_name}')
                 os.makedirs(sample_dir, exist_ok=True)
 
-                # Save txt_hyp as an mp3 file
-                tts_hyp = gTTS(text=txt_hyp, lang='de')
-                hyp_path = os.path.join(sample_dir, f'txt_hyp_{temp_name}.mp3')
-                tts_hyp.save(hyp_path)
-
-                # Save txt_ref as an mp3 file
-                ref_path = os.path.join(sample_dir, f'txt_ref_{temp_name}.mp3')
-                tts_ref = gTTS(text=txt_ref, lang='de')
-                tts_ref.save(ref_path)
-
-                # save src_input as a txt file
-                src_input_path = os.path.join(sample_dir, f'src_input.txt')
-                with open(src_input_path, 'w') as src_input_file:
-                    for key, value in src_input.items():
-                        src_input_file.write(f"{key}: {value}\n")
-
-                # Create a text file to store txt_hyp and txt_ref
-                text_file_path = os.path.join(sample_dir, f'{temp_name}.txt')
-                with open(text_file_path, 'w') as text_file:
-                    text_file.write(f"txt_hyp: {txt_hyp}\n")
-                    text_file.write(f"txt_ref: {txt_ref}\n")
-
-                # Optionally, play the audio (comment out if not needed)
-                # Audio(hyp_path, autoplay=True)
-                # Audio(ref_path, autoplay=True)
-
-                print('txt_ref: ', txt_ref)
 
                 print(
                     f'Name: {name}' + '\n' +
@@ -606,14 +578,26 @@ def evaluate_one_item(args, config, src_input, model, tokenizer, epoch, beam_siz
                     f'type: {prefix}'
                 )
 
-                last_result.append(
-                    {
+
+                # If name matches video_name, return the result immediately
+                if name == video_name:
+                    last_result.append(
+                        {
+                            'name': name,
+                            'txt_hyp': txt_hyp,
+                            'txt_ref': txt_ref,
+                            'prefix': prefix,
+                        }
+                    )
+
+                    with open('../result/json/predicted_result.json', 'w') as f:
+                        json.dump(last_result, f, indent=4)
+                    return {
                         'name': name,
                         'txt_hyp': txt_hyp,
                         'txt_ref': txt_ref,
                         'prefix': prefix,
                     }
-                )
 
                 # Clear variables and call garbage collection
                 del tts_hyp, tts_ref
@@ -623,10 +607,8 @@ def evaluate_one_item(args, config, src_input, model, tokenizer, epoch, beam_siz
 
             os.makedirs('../result/json', exist_ok=True)
 
-            timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
-
-            # store data to json file
-            with open(f'../result/json/last_result_{timestamp}.json', 'w') as f:
+            # Store data to json file
+            with open('../result/json/predicted_result.json', 'w') as f:
                 json.dump(last_result, f, indent=4)
 
         metric_logger.update(loss=output['total_loss'].item())
