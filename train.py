@@ -520,7 +520,7 @@ def evaluate_one_item(args, config, src_input, model, tokenizer, epoch, beam_siz
     print_freq = 10
     results = defaultdict(dict)
 
-    video_name = os.path.basename(args.input_keypoints_path).split('.')[0]
+    video_name = os.path.basename(os.path.dirname(args.input_keypoints_path))
 
     print('video_name: ', video_name)
 
