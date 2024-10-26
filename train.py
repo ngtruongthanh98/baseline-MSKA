@@ -580,7 +580,7 @@ def evaluate_one_item(args, config, src_input, model, tokenizer, epoch, beam_siz
 
 
                 # If name matches video_name, return the result immediately
-                if name == video_name:
+                if video_name in name:
                     last_result.append(
                         {
                             'name': name,
