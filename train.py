@@ -557,14 +557,14 @@ def evaluate_one_item(args, config, src_input, model, tokenizer, epoch, beam_siz
                 print('name: ', name)
                 results[name]['txt_hyp'], results[name]['txt_ref'] = txt_hyp, txt_ref
 
-                # match = re.match(r'^(test|dev)/(.+)$', name)
-                # if match:
-                #     prefix, rest_of_name = match.groups()
-                #     temp_name = rest_of_name.replace("/", "-")
-                #     sub_dir = os.path.join(result_dir, prefix)
-                # else:
-                #     temp_name = name.replace("/", "-")
-                #     sub_dir = result_dir
+                match = re.match(r'^(test|dev)/(.+)$', name)
+                if match:
+                    prefix, rest_of_name = match.groups()
+                    temp_name = rest_of_name.replace("/", "-")
+                    sub_dir = os.path.join(result_dir, prefix)
+                else:
+                    temp_name = name.replace("/", "-")
+                    sub_dir = result_dir
 
 
                 print(
