@@ -75,7 +75,7 @@ def get_args_parser():
     parser.add_argument("--project", type=str, default='VLP',
                         help="wandb project",
                         )
-    passet.add_argument("--input-keypoints-path", type=str, default='../17February_2011_Thursday_heute-387/src_input.pkl',
+    parser.add_argument("--input-keypoints-path", type=str, default='../17February_2011_Thursday_heute-387/src_input.pkl',
                         help="path to the input keypoints file",
                         )
 
