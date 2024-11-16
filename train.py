@@ -385,9 +385,9 @@ def evaluate(args, config, dev_dataloader, model, tokenizer, epoch, beam_size=1,
                     transformer_inputs=output['transformer_inputs'],
                     generate_cfg=generate_cfg)
 
-                for idx, (name, txt_hyp, txt_ref) in enumerate(zip(src_input['name'], generate_output['decoded_sequences'], src_input['text']), start=1):
+                for idx, (name, txt_hyp, txt_ref, gls_hyp, gls_ref) in enumerate(zip(src_input['name'], generate_output['decoded_sequences'], src_input['text']), start=1):
                     print('name: ', name)
-                    results[name]['txt_hyp'], results[name]['txt_ref'] = txt_hyp, txt_ref
+                    results[name]['txt_hyp'], results[name]['txt_ref'], results[name]['gls_hyp'], results[name]['gls_ref'] = txt_hyp, txt_ref, gls_hyp, gls_ref
 
                     match = re.match(r'^(test|dev)/(.+)$', name)
                     if match:
@@ -399,6 +399,7 @@ def evaluate(args, config, dev_dataloader, model, tokenizer, epoch, beam_size=1,
                         sub_dir = result_dir
 
                     print('txt_hyp: ', txt_hyp)
+
 
                     # Create directory for the sample inside the result directory
                     sample_dir = os.path.join(sub_dir, f'{temp_name}')
@@ -429,6 +430,8 @@ def evaluate(args, config, dev_dataloader, model, tokenizer, epoch, beam_size=1,
                     with open(text_file_path, 'w') as text_file:
                         text_file.write(f"txt_hyp: {txt_hyp}\n")
                         text_file.write(f"txt_ref: {txt_ref}\n")
+                        text_file.write(f"gls_hyp: {gls_hyp}\n")
+                        text_file.write(f"gls_ref: {gls_ref}\n")
 
                     # Optionally, play the audio (comment out if not needed)
                     # Audio(hyp_path, autoplay=True)
@@ -440,6 +443,8 @@ def evaluate(args, config, dev_dataloader, model, tokenizer, epoch, beam_size=1,
                         f'Name: {name}' + '\n' +
                         f'txt_hyp: {txt_hyp}' + '\n' +
                         f'txt_ref: {txt_ref}' + '\n' +
+                        f'gls_hyp: {gls_hyp}' + '\n' +\
+                        f'gls_ref: {gls_ref}' + '\n' +\
                         f'type: {prefix}'
                     )
 
@@ -448,6 +453,8 @@ def evaluate(args, config, dev_dataloader, model, tokenizer, epoch, beam_size=1,
                             'name': name,
                             'txt_hyp': txt_hyp,
                             'txt_ref': txt_ref,
+                            'gls_hyp': gls_hyp,
+                            'gls_ref': gls_ref,
                             'prefix': prefix,
                         }
                     )
