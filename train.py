@@ -369,6 +369,8 @@ def evaluate(args, config, dev_dataloader, model, tokenizer, epoch, beam_size=1,
 
                     batch_pred_gls = tokenizer.convert_ids_to_tokens(ctc_decode_output)
                     for name, gls_hyp, gls_ref in zip(src_input['name'], batch_pred_gls, src_input['gloss']):
+                        print('name: ', name)
+
                         results[name][f'{logits_name}gls_hyp'] = \
                             ' '.join(gls_hyp).upper() if tokenizer.lower_case \
                                 else ' '.join(gls_hyp)
@@ -377,6 +379,7 @@ def evaluate(args, config, dev_dataloader, model, tokenizer, epoch, beam_size=1,
                         results[name]['gls_ref'] = gls_ref.upper() if tokenizer.lower_case \
                             else gls_ref
                         print('value of gls_ref: ', results[name]['gls_ref'])
+
 
 
             result_dir = f'../result'
