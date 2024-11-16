@@ -356,7 +356,12 @@ def evaluate(args, config, dev_dataloader, model, tokenizer, epoch, beam_size=1,
             print('test src_input: ', src_input)
 
             output = model(src_input)
+            result_dir = f'../result'
+            os.makedirs(result_dir, exist_ok=True)
+
             if do_recognition:
+                last_reg_result = []
+
                 for k, gls_logits in output.items():
                     if not 'gloss_logits' in k:
                         continue
@@ -380,10 +385,34 @@ def evaluate(args, config, dev_dataloader, model, tokenizer, epoch, beam_size=1,
                             else gls_ref
                         print('value of gls_ref: ', results[name]['gls_ref'])
 
+                        # # handle mapping of name to sub_dir
+                        # match = re.match(r'^(test|dev)/(.+)$', name)
+                        # if match:
+                        #     prefix, rest_of_name = match.groups()
+                        #     temp_name = rest_of_name.replace("/", "-")
+                        #     sub_dir = os.path.join(result_dir, prefix)
+                        # else:
+                        #     temp_name = name.replace("/", "-")
+                        #     sub_dir = result_dir
 
+                        last_reg_result.append(
+                            {
+                                'name': name,
+                                'gls_hyp': gls_hyp,
+                                'gls_ref': gls_ref,
+                            }
+                        )
 
-            result_dir = f'../result'
-            os.makedirs(result_dir, exist_ok=True)
+            print('last_reg_result: ', last_reg_result)
+
+            os.makedirs('../result/json', exist_ok=True)
+
+            timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+
+            # store data to json file
+            with open(f'../result/json/last_reg_result_{timestamp}.json', 'w') as f:
+                json.dump(last_reg_result, f, indent=4)
+
 
             if do_translation:
                 last_result = []
