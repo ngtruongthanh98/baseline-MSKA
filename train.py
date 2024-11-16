@@ -364,6 +364,9 @@ def evaluate(args, config, dev_dataloader, model, tokenizer, epoch, beam_size=1,
                     ctc_decode_output = model.recognition_network.decode(gloss_logits=gls_logits,
                                                                          beam_size=beam_size,
                                                                          input_lengths=output['input_lengths'])
+
+                    print('ctc_decode_output: ', ctc_decode_output)
+
                     batch_pred_gls = tokenizer.convert_ids_to_tokens(ctc_decode_output)
                     for name, gls_hyp, gls_ref in zip(src_input['name'], batch_pred_gls, src_input['gloss']):
                         results[name][f'{logits_name}gls_hyp'] = \
@@ -533,6 +536,9 @@ def evaluate_one_item(args, config, src_input, model, tokenizer, epoch, beam_siz
                 ctc_decode_output = model.recognition_network.decode(gloss_logits=gls_logits,
                                                                     beam_size=beam_size,
                                                                     input_lengths=output['input_lengths'])
+
+                print('ctc_decode_output: ', ctc_decode_output)
+
                 batch_pred_gls = tokenizer.convert_ids_to_tokens(ctc_decode_output)
                 for name, gls_hyp, gls_ref in zip(src_input['name'], batch_pred_gls, src_input['gloss']):
                     results[name][f'{logits_name}gls_hyp'] = \
