@@ -166,20 +166,20 @@ def main(args, config):
     if args.eval:
         if not args.resume:
             logger.warning('Please specify the trained model: --resume /path/to/best_checkpoint.pth')
-        # dev_stats = evaluate(args, config, dev_dataloader, model, tokenizer, epoch=0, beam_size=5,
-        #                       generate_cfg=config['training']['validation']['translation'],
-        #                       do_translation=config['do_translation'], do_recognition=config['do_recognition'])
-        # print(f"Dev loss of the network on the {len(dev_dataloader)} test videos: {dev_stats['loss']:.3f}")
+        dev_stats = evaluate(args, config, dev_dataloader, model, tokenizer, epoch=0, beam_size=5,
+                              generate_cfg=config['training']['validation']['translation'],
+                              do_translation=config['do_translation'], do_recognition=config['do_recognition'])
+        print(f"Dev loss of the network on the {len(dev_dataloader)} test videos: {dev_stats['loss']:.3f}")
 
-        # test_stats = evaluate(args, config, test_dataloader, model, tokenizer, epoch=0, beam_size=5,
-        #                       generate_cfg=config['testing']['translation'],
-        #                       do_translation=config['do_translation'], do_recognition=config['do_recognition'])
-        # print(f"Test loss of the network on the {len(test_dataloader)} test videos: {test_stats['loss']:.3f}")
-
-
-        custom_starts = evaluate_one_item(args, config, src_input, model, tokenizer, epoch=0, beam_size=5,
+        test_stats = evaluate(args, config, test_dataloader, model, tokenizer, epoch=0, beam_size=5,
                               generate_cfg=config['testing']['translation'],
                               do_translation=config['do_translation'], do_recognition=config['do_recognition'])
+        print(f"Test loss of the network on the {len(test_dataloader)} test videos: {test_stats['loss']:.3f}")
+
+
+        # custom_starts = evaluate_one_item(args, config, src_input, model, tokenizer, epoch=0, beam_size=5,
+        #                       generate_cfg=config['testing']['translation'],
+        #                       do_translation=config['do_translation'], do_recognition=config['do_recognition'])
 
         return
 
@@ -246,20 +246,20 @@ def main(args, config):
     if test_on_last_epoch:
         checkpoint = torch.load(str(output_dir) + '/best_checkpoint.pth', map_location='cpu')
         model.load_state_dict(checkpoint['model'], strict=True)
-        # dev_stats = evaluate(args, config, dev_dataloader, model, tokenizer, epoch=0, beam_size=config['testing']['recognition']['beam_size'],
-        #                      generate_cfg=config['training']['validation']['translation'],
-        #                      do_translation=config['do_translation'], do_recognition=config['do_recognition'])
-        # print(f"Dev loss of the network on the {len(dev_dataloader)} test videos: {dev_stats['loss']:.3f}")
+        dev_stats = evaluate(args, config, dev_dataloader, model, tokenizer, epoch=0, beam_size=config['testing']['recognition']['beam_size'],
+                             generate_cfg=config['training']['validation']['translation'],
+                             do_translation=config['do_translation'], do_recognition=config['do_recognition'])
+        print(f"Dev loss of the network on the {len(dev_dataloader)} test videos: {dev_stats['loss']:.3f}")
 
-        # test_stats = evaluate(args, config, test_dataloader, model, tokenizer, epoch=0, beam_size=config['testing']['recognition']['beam_size'],
-        #                       generate_cfg=config['testing']['translation'],
-        #                       do_translation=config['do_translation'], do_recognition=config['do_recognition'])
-        # print(f"Test loss of the network on the {len(test_dataloader)} test videos: {test_stats['loss']:.3f}")
-
-        custom_starts = evaluate_one_item(args, config, src_input, model, tokenizer, epoch=0, beam_size=config['testing']['recognition']['beam_size'],
+        test_stats = evaluate(args, config, test_dataloader, model, tokenizer, epoch=0, beam_size=config['testing']['recognition']['beam_size'],
                               generate_cfg=config['testing']['translation'],
                               do_translation=config['do_translation'], do_recognition=config['do_recognition'])
-        print(f"Test loss of the network on the {len(test_dataloader)} custom videos: {custom_starts['loss']:.3f}")
+        print(f"Test loss of the network on the {len(test_dataloader)} test videos: {test_stats['loss']:.3f}")
+
+        # custom_starts = evaluate_one_item(args, config, src_input, model, tokenizer, epoch=0, beam_size=config['testing']['recognition']['beam_size'],
+        #                       generate_cfg=config['testing']['translation'],
+        #                       do_translation=config['do_translation'], do_recognition=config['do_recognition'])
+        # print(f"Test loss of the network on the {len(test_dataloader)} custom videos: {custom_starts['loss']:.3f}")
 
         if config['do_recognition']:
             with (output_dir / "log.txt").open("a") as f:
