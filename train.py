@@ -100,34 +100,34 @@ def main(args, config):
 
     print(f"Creating dataset:")
     tokenizer = GlossTokenizer_S2G(config['gloss'])
-    train_data = S2T_Dataset(path=config['data']['train_label_path'], tokenizer=tokenizer, config=config, args=args,
-                             phase='train', training_refurbish=True)
-    print(train_data)
-    train_dataloader = DataLoader(train_data,
-                                  batch_size=args.batch_size,
-                                  num_workers=args.num_workers,
-                                  collate_fn=train_data.collate_fn,
-                                  shuffle=True,
-                                  pin_memory=args.pin_mem,
-                                  drop_last=True)
+    # train_data = S2T_Dataset(path=config['data']['train_label_path'], tokenizer=tokenizer, config=config, args=args,
+    #                          phase='train', training_refurbish=True)
+    # print(train_data)
+    # train_dataloader = DataLoader(train_data,
+    #                               batch_size=args.batch_size,
+    #                               num_workers=args.num_workers,
+    #                               collate_fn=train_data.collate_fn,
+    #                               shuffle=True,
+    #                               pin_memory=args.pin_mem,
+    #                               drop_last=True)
 
-    dev_data = S2T_Dataset(path=config['data']['dev_label_path'], tokenizer=tokenizer, config=config, args=args,
-                           phase='val', training_refurbish=True)
-    print(dev_data)
-    dev_dataloader = DataLoader(dev_data,
-                                batch_size=args.batch_size,
-                                num_workers=args.num_workers,
-                                collate_fn=dev_data.collate_fn,
-                                pin_memory=args.pin_mem)
+    # dev_data = S2T_Dataset(path=config['data']['dev_label_path'], tokenizer=tokenizer, config=config, args=args,
+    #                        phase='val', training_refurbish=True)
+    # print(dev_data)
+    # dev_dataloader = DataLoader(dev_data,
+    #                             batch_size=args.batch_size,
+    #                             num_workers=args.num_workers,
+    #                             collate_fn=dev_data.collate_fn,
+    #                             pin_memory=args.pin_mem)
 
-    test_data = S2T_Dataset(path=config['data']['test_label_path'], tokenizer=tokenizer, config=config, args=args,
-                            phase='test', training_refurbish=True)
-    print(test_data)
-    test_dataloader = DataLoader(test_data,
-                                 batch_size=args.batch_size,
-                                 num_workers=args.num_workers,
-                                 collate_fn=test_data.collate_fn,
-                                 pin_memory=args.pin_mem)
+    # test_data = S2T_Dataset(path=config['data']['test_label_path'], tokenizer=tokenizer, config=config, args=args,
+    #                         phase='test', training_refurbish=True)
+    # print(test_data)
+    # test_dataloader = DataLoader(test_data,
+    #                              batch_size=args.batch_size,
+    #                              num_workers=args.num_workers,
+    #                              collate_fn=test_data.collate_fn,
+    #                              pin_memory=args.pin_mem)
 
     # file_path = '../17February_2011_Thursday_heute-387/src_input.pkl'
     src_input = load_keypoints_data(args.input_keypoints_path)
