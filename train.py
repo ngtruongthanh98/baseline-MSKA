@@ -189,19 +189,19 @@ def main(args, config):
     bleu_4 = 0
     for epoch in range(args.start_epoch, args.epochs):
         scheduler.step()
-        train_stats = train_one_epoch(args, model, tokenizer, train_dataloader, optimizer, device, epoch)
-        checkpoint_paths = [output_dir / f'checkpoint.pth']
-        for checkpoint_path in checkpoint_paths:
-            utils.save_on_master({
-                'model': model.state_dict(),
-                'optimizer': optimizer.state_dict(),
-                'scheduler': scheduler.state_dict(),
-                'epoch': epoch,
-            }, checkpoint_path)
-        test_stats = evaluate(args, config, dev_dataloader, model, tokenizer, epoch,
-                              beam_size=config['training']['validation']['recognition']['beam_size'],
-                              generate_cfg=config['training']['validation']['translation'],
-                              do_translation=config['do_translation'], do_recognition=config['do_recognition'])
+        # train_stats = train_one_epoch(args, model, tokenizer, train_dataloader, optimizer, device, epoch)
+        # checkpoint_paths = [output_dir / f'checkpoint.pth']
+        # for checkpoint_path in checkpoint_paths:
+        #     utils.save_on_master({
+        #         'model': model.state_dict(),
+        #         'optimizer': optimizer.state_dict(),
+        #         'scheduler': scheduler.state_dict(),
+        #         'epoch': epoch,
+        #     }, checkpoint_path)
+        # test_stats = evaluate(args, config, dev_dataloader, model, tokenizer, epoch,
+        #                       beam_size=config['training']['validation']['recognition']['beam_size'],
+        #                       generate_cfg=config['training']['validation']['translation'],
+        #                       do_translation=config['do_translation'], do_recognition=config['do_recognition'])
 
         if config['task'] == "S2T":
             if bleu_4 < test_stats["bleu4"]:
